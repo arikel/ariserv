@@ -8,7 +8,7 @@ from time import sleep
 from PodSixNet.Server import Server
 from PodSixNet.Channel import Channel
 
-from functions import ustr
+from functions import ustr, getDist
 
 from dbHandler import dbHandler
 from gameEngine import *
@@ -34,6 +34,11 @@ class ClientChannel(Channel):
 	def Network_position(self, data):
 		#print "Pos msg to send to client : %s" % (data)
 		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y']})
+		
+	def Network_update_move(self, data):
+		#print "Pos msg to send to client : %s" % (data)
+		
+		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y']})
 	
 	def Network_public_message(self, data):
 		self._server.SendToAll({"action": "public_message", "message": data['message'], "who": self.nickname})
@@ -48,10 +53,11 @@ class ClientChannel(Channel):
 	def Network_nickname(self, data):
 		self.nickname = data['nickname']
 		self.name = data['nickname']
+		#if self.name != "anonymous":
 		self._server.SendPlayers()
 		self._server.players[self.name] = self
-		if "none" in self._server.players:
-			del self._server.players["none"]
+		#if "none" in self._server.players:
+		#	del self._server.players["none"]
 		
 	def Network_login(self, data):
 		self.name = data['nickname']
@@ -70,7 +76,8 @@ class GameServer(Server):
 		self.playerChannels = {}#WeakKeyDictionary()
 		self.players = {}
 		self.db = dbHandler("db/essai.db")
-		self.map = MapBase()
+		self.map = MapBase("maps/001-1.tmx")
+		
 		print 'Server launched'
 	
 	def Connected(self, channel, addr):

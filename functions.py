@@ -17,3 +17,6 @@ def ustr(o):
 	#if isinstance(o, basestring):
 	#	return o.value()
 	return unicode(str(o.encode("utf-8")))
+
+def getDist(a, b):
+	return math.sqrt((a.x-b.x)^2+(a.y-b.y)^2)

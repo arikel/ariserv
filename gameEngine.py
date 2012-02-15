@@ -82,7 +82,7 @@ class MapObject:
 		self.dx = x # -1, 0, 1
 		self.dy = y
 
-	def update(dt=0.0):
+	def update(self, dt=0.0):
 		if self.mobile:
 			self.move(self.dx*dt, self.dy*dt)
 	
@@ -127,7 +127,7 @@ class Mob(Being, MapObject):
 		Being.__init__(self, id)
 		MapObject.__init__(self, id, _map)
 		self.mobile = True
-		
+		self.category = "mob"
 		self.mobId = mobId
 		
 		self.setPos(x, y)
@@ -138,7 +138,7 @@ class Player(Being, MapObject):
 		Being.__init__(self, id)
 		MapObject.__init__(self, id, _map)
 		self.mobile = True
-		
+		self.category = "player"
 		self.setPos(x, y)
 		
 		
