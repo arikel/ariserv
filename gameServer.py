@@ -10,7 +10,6 @@ from PodSixNet.Channel import Channel
 
 from functions import ustr
 
-from mapHandler import *
 from dbHandler import dbHandler
 from gameEngine import *
 

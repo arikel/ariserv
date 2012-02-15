@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
+from tmxHandler import *
 
 class Item:
 	weight = 0.1
@@ -141,3 +142,69 @@ class Player(Being, MapObject):
 		self.setPos(x, y)
 		
 		
+class MapBase:
+	def __init__(self, filename=None):
+		self.filename = filename
+		if self.filename:
+			self.load(self.filename)
+		
+		self.mapObjects = []
+		self.mobs = []
+		self.players = {}
+		self.npcs = []
+		
+	def load(self, filename):	
+		self.mapData = TmxMapData()
+		self.mapData.load(self.filename)
+		
+		self.width = self.mapData.width
+		self.height = self.mapData.height
+		
+		self.tileWidth = self.mapData.tileWidth
+		self.tileHeight = self.mapData.tileHeight
+		
+		self.collisionLayer = TileLayer("collisionLayer",
+			self.width,
+			self.height,
+			decode(self.mapData.getLayerData("collision"))
+		)
+		
+		self.collisionGrid = TileLayer("collisionGrid",
+			self.width,
+			self.height,
+			decode(self.mapData.getLayerData("collision"))
+		)
+		
+	def tileCollide(self, x, y): # tile position collide test
+		if self.collisionLayer.tiles[x][y]>0:
+			return True
+		return False
+		
+	def posCollide(self, x, y): # pixel position collide test
+		return self.tileCollide(int(x)/self.tileWidth, int(y)/self.tileHeight)
+		
+	def blockTile(self, x, y):
+		self.collisionGrid.tiles[x][y] = 1
+		
+	def freeTile(self, x, y):
+		self.collisionGrid.tiles[x][y] = 0
+	
+	def revertTile(self, x, y):
+		self.collisionGrid.tiles[x][y] = self.collisionLayer.tiles[x][y]
+		
+	def addPlayer(self, player, x=None, y=None):
+		if x == None:
+			x = player.x
+			y = player.y
+		if player.id not in self.players:
+			self.players[player.id]=player
+			player._map = self
+		
+	def delPlayer(self, playerName):
+		del self.players[playerName]
+		
+	def update(self, dt):
+		for player in self.players:
+			player.update(dt)
+			
+	

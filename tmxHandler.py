@@ -58,4 +58,92 @@ def encode(content_list):
 	return coded_content
 	
 
+class TileLayer(object):
+	def __init__(self, name, width, height, data = []):
+		self.name = name
+		self.width = width
+		self.height = height
+		self.data = data
+		#self.tiles = [] # [x][y] -> gid
+		self.clearTiles()
+		self.makeTiles()
+		
+	def clearTiles(self):
+		self.tiles = []
+		for x in range(self.width):
+			col = []
+			for y in range(self.height):
+				col.append(0)
+			self.tiles.append(col)
+	
+	def makeTiles(self):
+		X = 0
+		Y = 0
+		for gid in self.data:
+			#if gid != 0:
+			self.tiles[X][Y]=gid
+			X += 1
+			if X == self.width:
+				X = 0
+				Y += 1
 
+#-------------------------------------------------------------------------------
+class TmxMapData(object):
+	def __init__(self):
+		self.myMap = None
+		
+		
+	def load(self, filename):
+		self.myMap = self.parseMap(filename)
+		self.width = int(self.myMap.getAttribute("width")) # width in tiles
+		self.height = int(self.myMap.getAttribute("height")) # height in tiles
+		self.tileWidth = int(self.myMap.getAttribute("tilewidth"))
+		self.tileHeight = int(self.myMap.getAttribute("tileheight"))
+		
+		self.maxTileWidth = 0
+		self.maxTileHeight = 0
+		
+		self.layerImageWidth = self.width * self.tileWidth
+		self.layerImageHeight = self.height * self.tileHeight
+		
+		
+	def getChildNodes(self, node, name):
+		children = []
+		for child in node.childNodes:
+			if (child.nodeType == Node.ELEMENT_NODE and child.nodeName == name):
+				children.append(child)
+		return children
+
+	def parseMap(self, filename):# return map node
+		dom = minidom.parseString(open(filename, "rb").read())
+		for node in self.getChildNodes(dom, "map"):
+			return node
+		return None
+		
+	def getLayerNames(self):
+		data = []
+		layers = self.getChildNodes(self.myMap, "layer")
+		for layer in layers:
+			name = layer.getAttribute("name")
+			data.append(name)
+		return data
+
+	def getLayerData(self, layername):
+		layers = self.getChildNodes(self.myMap, "layer")
+		for layer in layers:
+			name = layer.getAttribute("name")
+			if name == layername:
+				layerData = self.getChildNodes(layer, "data")
+				return layerData[0].childNodes[0]._get_data()
+		return None
+
+	def getLayerDataDic(self, layername):
+		data = {}
+		layers = self.getChildNodes(self.myMap, "layer")
+		for layer in layers:
+			name = layer.getAttribute("name")
+			if name == layername:
+				layerData = self.getChildNodes(layer, "data")
+				#data.append(layerData[0].childNodes[0]._get_data())
+				data[layername] = layerData[0].childNodes[0]._get_data()
+		return data
