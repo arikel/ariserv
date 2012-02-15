@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="50" height="50" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="forestPath" tilewidth="16" tileheight="16">
+  <image source="../graphics/tiles/forestPath.png"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="50" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3UsQ2AMAxE0WOD7C8BgwCDAMvgCUwUhOzAL16V5nyyUwap4FdGSZOZFZ/licXyr2YLnMPrsrbn3d4PcwbO4XWZoedaXpcZesY9/qdcermbnvbGy9q6NxHze1lb9ybibt7Y8V7uBgAAAAAAAAAAAPiqC/d/P0YQJwAA
+  </data>
+ </layer>
+</map>

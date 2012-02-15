@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="80" height="50" tilewidth="16" tileheight="16">
+ <tileset firstgid="1" name="forestPath" tilewidth="16" tileheight="16">
+  <image source="../graphics/tiles/forestPath.png"/>
+ </tileset>
+ <tileset firstgid="481" name="tree01" tilewidth="54" tileheight="75">
+  <image source="../graphics/tiles/tree01.png"/>
+ </tileset>
+ <tileset firstgid="482" name="tree02" tilewidth="87" tileheight="110">
+  <image source="../graphics/tiles/tree02.png"/>
+ </tileset>
+ <layer name="ground" width="80" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3TwQ2CQBRF0cEKrEBdudQ+tBEtRNE6DNqHgIWoDVCAiW+hCSGDGWHzJ9yEs5jd+zdh7pyrAAAABq6QUm4GtsToLg95GtgSI5fok1FC5y4m6jaVmadfvVlo59iluu8Q4BjQod5sKP0y3XcOcKGfV677igDln/1+/efwoxkAAAAAAAAQt53sa1ayNrArFqfGeyNbOnbu1+yYGthoWVu/r8zARsvo18+Lfr0tZUy/XhYtHenXreP1IzewCQAAAAAwLG//rjBZgD4AAA==
+  </data>
+ </layer>
+ <layer name="fringe" width="80" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3YQQ7CIBAF0HoU4229pZ7EhRtjgk5ToMC8d4AJ/AxlyrYBAAAre17OXsEcHpVyqlWHtxnyHGWNo6xjFqW85EhJht74tcd7pTp7ZMg84jsHuZTNmE2LWf0arNnjLjxSy39MbjOe5xb+5bDnfl7Jmf1hzqkra563j/VG77vVs4pkEp1xIqIztreDsfbaez6s2XO0M1KP9hI5C5lycVbJyrtJH3KG/pw7gHX5xqMHOEoPMQq9SDYv3H3KpoA+AAA=
+  </data>
+ </layer>
+ <layer name="over" width="80" height="50">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+3SwQmAQAxFweSg9t/Tal2mB8GwYQbe/RMSAQBMcGTEWV3ZvWQ2d/5mVXf1dA/ZiJ8DAAAAAAAAAAAAAADgTy+muZHxgD4AAA==
+  </data>
+ </layer>
+ <layer name="collision" width="80" height="50" opacity="0.7">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA+2ZQQ7DIBADw/8/3UNVqapoAphdG/BI3JrgDA0spFzXVdygZsawPwz7w7A/DPvDsD+MKH+nrO2r+2OPEdsf6vlEf701/KyMEc/KGD+VPdCMfqOz1+7P8Bf9nmWS4e9p7ojuJ5KdaptdnoNFr7+794IBe/zZ/X/4zaGS65u7tZCdg01Prd973b979fxWvT5BPKj9F1ZCwZ9ChlGysq/q54nReTML5bODyPtGoeYza20cvU79GWfWL7UaeCatNXbE2UHWecQs1HJlnuechNo496CQXXH/q+ClFXROPZ2VxroGOz+7f5TW/N5/YNifJur+nA/D+fbG/jDsD2OGv5PHwP7e+Pslhv1xsD+MXf1lfte2P/1+dqW4we0Fo9VfBIA+AAA=
+  </data>
+ </layer>
+ <objectgroup name="objects" width="80" height="50">
+  <object name="machin" type="truc" x="274" y="189" width="127" height="158">
+   <properties>
+    <property name="damage" value="50"/>
+   </properties>
+  </object>
+ </objectgroup>
+</map>

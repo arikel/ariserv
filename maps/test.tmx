@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" width="3" height="3" tilewidth="32" tileheight="32">
+ <tileset firstgid="1" name="tree02" tilewidth="32" tileheight="32">
+  <image source="../graphics/tiles/tree02.png"/>
+ </tileset>
+ <layer name="Tile Layer 1" width="3" height="3">
+  <data encoding="base64" compression="gzip">
+   H4sIAAAAAAAAA2NkYGBgZIAAEM3CgAkAlO3UwSQAAAA=
+  </data>
+ </layer>
+</map>
