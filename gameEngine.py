@@ -41,8 +41,11 @@ class Inventory:
 				self.addItem(item[0].strip(), item[1].strip())
 
 class MapObject:
-	def __init__(self, id):
+	_map = None
+	def __init__(self, id, _map = None):
 		self.id = id
+		self._map = _map
+		
 		# float pixel position on map
 		self.category = None
 		self.currentMapName = None
@@ -81,7 +84,13 @@ class MapObject:
 	def update(dt=0.0):
 		if self.mobile:
 			self.move(self.dx*dt, self.dy*dt)
-
+	
+	def nextMovePossible(dt=0.0):
+		if not self._map:
+			return False
+		if self._map.collidePos(self.x + self.dx*dt, self.y + self.dy*dt):
+			return False
+		return True
 
 class Being(object):
 	def __init__(self, id):
@@ -113,10 +122,21 @@ class Being(object):
 		
 	
 class Mob(Being, MapObject):
-	def __init__(self, id, mobId, x, y):
+	def __init__(self, id, mobId, _map, x, y):
 		Being.__init__(self, id)
-		MapObject.__init__(self, id)
+		MapObject.__init__(self, id, _map)
+		self.mobile = True
+		
 		self.mobId = mobId
+		
+		self.setPos(x, y)
+		
+		
+class Player(Being, MapObject):
+	def __init__(self, id, _map, x, y):
+		Being.__init__(self, id)
+		MapObject.__init__(self, id, _map)
+		self.mobile = True
 		
 		self.setPos(x, y)
 		
