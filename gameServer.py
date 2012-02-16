@@ -18,7 +18,7 @@ class ClientChannel(Channel):
 	This is the server representation of a single connected client.
 	"""
 	def __init__(self, *args, **kwargs):
-		print "Init client channel : %s // %s" % (args, kwargs)
+		#print "Init client channel : %s // %s" % (args, kwargs)
 		#self.nickname = "anonymous"
 		self.id = "none"
 		Channel.__init__(self, *args, **kwargs)
@@ -67,6 +67,7 @@ class ClientChannel(Channel):
 		self.id = data["id"]
 		self._server.SendPlayers()
 		self._server.players[self.id] = self
+		print "player %s logged in." % (self.id)
 		#if "none" in self._server.players:
 		#	del self._server.players["none"]
 		
@@ -97,10 +98,10 @@ class GameServer(Server):
 		self.AddPlayer(channel)
 	
 	def AddPlayer(self, playerChannel):
-		print "New Player" + str(playerChannel.addr) + " name : " + playerChannel.id
+		print "New anon player" + str(playerChannel.addr) + " name : " + playerChannel.id
 		self.playerChannels[playerChannel] = True
 		
-		self.SendPlayers()
+		#self.SendPlayers()
 		print "players", [p for p in self.playerChannels]
 		
 	def DelPlayer(self, playerChannel):
