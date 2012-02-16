@@ -58,7 +58,7 @@ class MapObject:
 		# movement
 		self.dx = 0.0
 		self.dy = 0.0
-		self.speed = 0.4
+		self.speed = 0.2
 		self.mobile = False
 		
 		self.currentAnim = "idle"
@@ -204,7 +204,7 @@ class MapBase:
 		del self.players[playerName]
 		
 	def update(self, dt):
-		for player in self.players:
+		for player in self.players.values():
 			player.update(dt)
 			
 	

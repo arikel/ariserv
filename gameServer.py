@@ -31,15 +31,21 @@ class ClientChannel(Channel):
 	#-------------------------------------------------------------------
 	# on server receive from client self.nickname :
 	#-------------------------------------------------------------------
+	
+	#-------------------------------------------------------------------
+	# movements
+	
 	def Network_position(self, data):
 		#print "Pos msg to send to client : %s" % (data)
 		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y']})
 		
 	def Network_update_move(self, data):
 		#print "Pos msg to send to client : %s" % (data)
-		
-		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y']})
+		self._server.SendToAll({"action": "update_move", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
 	
+	
+	#-------------------------------------------------------------------
+	# chat
 	def Network_public_message(self, data):
 		self._server.SendToAll({"action": "public_message", "message": data['message'], "who": self.nickname})
 		
@@ -49,6 +55,9 @@ class ClientChannel(Channel):
 		else:
 			msg = "%s not connected" % (data["target"])
 			self._server.SendTo(self.nickname, {"action": "private_message", "message": msg, "who": 'server'})
+	
+	#-------------------------------------------------------------------
+	# login
 	
 	def Network_nickname(self, data):
 		self.nickname = data['nickname']
@@ -87,7 +96,6 @@ class GameServer(Server):
 		print "New Player" + str(player.addr) + " name : " + player.name
 		self.playerChannels[player] = True
 		
-		
 		self.SendPlayers()
 		print "players", [p for p in self.playerChannels]
 	
@@ -101,7 +109,7 @@ class GameServer(Server):
 	#-------------------------------------------------------------------
 	
 	def SendTo(self, playerName, data):
-		self.players[playerName].Send(data)
+		self.playerChannels[playerName].Send(data)
 	
 	def SendToAll(self, data):
 		[p.Send(data) for p in self.playerChannels]
@@ -120,7 +128,7 @@ class GameServer(Server):
 	def SendPlayers(self):
 		self.SendToAll({"action": "players", "players": [p.nickname for p in self.playerChannels], "who": "server"})
 		
-	
+'''
 # get command line argument of server, port
 if len(sys.argv) != 2:
 	print "Usage:", sys.argv[0], "host:port"
@@ -129,4 +137,8 @@ else:
 	host, port = sys.argv[1].split(":")
 	s = GameServer(localaddr=(host, int(port)))
 	s.Launch()
+'''
 
+if __name__=="__main__":
+	s = GameServer(localaddr=("88.173.217.230", 18647))
+	s.Launch()
