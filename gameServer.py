@@ -18,8 +18,9 @@ class ClientChannel(Channel):
 	This is the server representation of a single connected client.
 	"""
 	def __init__(self, *args, **kwargs):
-		self.nickname = "anonymous"
-		self.name = "none"
+		print "Init client channel : %s // %s" % (args, kwargs)
+		#self.nickname = "anonymous"
+		self.id = "none"
 		Channel.__init__(self, *args, **kwargs)
 	
 	def Close(self):
@@ -37,42 +38,43 @@ class ClientChannel(Channel):
 	
 	def Network_position(self, data):
 		#print "Pos msg to send to client : %s" % (data)
-		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y']})
+		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.id, "x":data['x'], "y":data['y']})
 		
 	def Network_update_move(self, data):
 		#print "Pos msg to send to client : %s" % (data)
-		self._server.SendToAll({"action": "update_move", "message": data['message'], "who": self.nickname, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
+		self._server.SendToAll({"action": "update_move", "message": data['message'], "who": self.id, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
 	
 	
 	#-------------------------------------------------------------------
 	# chat
 	def Network_public_message(self, data):
-		self._server.SendToAll({"action": "public_message", "message": data['message'], "who": self.nickname})
+		self._server.SendToAll({"action": "public_message", "message": data['message'], "who": self.id})
 		
 	def Network_private_message(self, data):
 		if data["target"] in self._server.players:
-			self._server.SendTo(data["target"], {"action": "private_message", "message": data['message'], "who": self.nickname})
+			self._server.SendTo(data["target"], {"action": "private_message", "message": data['message'], "who": self.id})
 		else:
 			msg = "%s not connected" % (data["target"])
-			self._server.SendTo(self.nickname, {"action": "private_message", "message": msg, "who": 'server'})
+			self._server.SendTo(self.id, {"action": "private_message", "message": msg, "who": 'server'})
 	
 	#-------------------------------------------------------------------
 	# login
 	
 	def Network_nickname(self, data):
-		self.nickname = data['nickname']
-		self.name = data['nickname']
+		#self.nickname = data['nickname']
+		#self.name = data['nickname']
 		#if self.name != "anonymous":
+		self.id = data["id"]
 		self._server.SendPlayers()
-		self._server.players[self.name] = self
+		self._server.players[self.id] = self
 		#if "none" in self._server.players:
 		#	del self._server.players["none"]
 		
 	def Network_login(self, data):
-		self.name = data['nickname']
+		self.id = data['id']
 		self.password = data['password']
-		if self._server.db.checkLogin(self.name, self.password):
-			self._server.players[self.name] = self
+		if self._server.db.checkLogin(self.id, self.password):
+			self._server.players[self.id] = self
 			self._server.SendPlayers()
 			if "none" in self._server.players:
 				del self._server.players["none"]
@@ -82,9 +84,11 @@ class GameServer(Server):
 	
 	def __init__(self, *args, **kwargs):
 		Server.__init__(self, *args, **kwargs)
-		self.playerChannels = {}#WeakKeyDictionary()
-		self.players = {}
+		self.playerChannels = {}#WeakKeyDictionary() # playerChannel -> True
+		self.players = {} # playerId -> playerChannel
+		
 		self.db = dbHandler("db/essai.db")
+		
 		self.map = MapBase("maps/001-1.tmx")
 		
 		print 'Server launched'
@@ -92,16 +96,16 @@ class GameServer(Server):
 	def Connected(self, channel, addr):
 		self.AddPlayer(channel)
 	
-	def AddPlayer(self, player):
-		print "New Player" + str(player.addr) + " name : " + player.name
-		self.playerChannels[player] = True
+	def AddPlayer(self, playerChannel):
+		print "New Player" + str(playerChannel.addr) + " name : " + playerChannel.id
+		self.playerChannels[playerChannel] = True
 		
 		self.SendPlayers()
 		print "players", [p for p in self.playerChannels]
-	
-	def DelPlayer(self, player):
-		print "Deleting Player" + str(player.addr)
-		del self.playerChannels[player]
+		
+	def DelPlayer(self, playerChannel):
+		print "Deleting Player" + str(playerChannel.addr)
+		del self.playerChannels[playerChannel]
 		self.SendPlayers()
 	
 	#-------------------------------------------------------------------
@@ -109,13 +113,13 @@ class GameServer(Server):
 	#-------------------------------------------------------------------
 	
 	def SendTo(self, playerName, data):
-		self.playerChannels[playerName].Send(data)
+		self.players[playerName].Send(data)
 	
 	def SendToAll(self, data):
 		[p.Send(data) for p in self.playerChannels]
 	
-	def SendToList(self, playerList, data):# list of players names to send to
-		[self.players[p].Send(data) for p in self.playerList]
+	#def SendToList(self, playerList, data):# list of players names to send to
+	#	[self.players[p].Send(data) for p in self.playerList]
 	
 	def Launch(self):
 		while True:
@@ -126,7 +130,7 @@ class GameServer(Server):
 	# server send to client
 	#-------------------------------------------------------------------
 	def SendPlayers(self):
-		self.SendToAll({"action": "players", "players": [p.nickname for p in self.playerChannels], "who": "server"})
+		self.SendToAll({"action": "players", "players": [p.id for p in self.playerChannels], "who": "server"})
 		
 '''
 # get command line argument of server, port

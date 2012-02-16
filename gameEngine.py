@@ -150,7 +150,7 @@ class MapBase:
 		
 		self.mapObjects = []
 		self.mobs = []
-		self.players = {}
+		self.players = []
 		self.npcs = []
 		
 	def load(self, filename):	
@@ -176,7 +176,8 @@ class MapBase:
 		)
 		
 	def tileCollide(self, x, y): # tile position collide test
-		if self.collisionLayer.tiles[x][y]>0:
+		if self.collisionGrid.tiles[x][y]>0:
+			#print "%s / %s collides" % (x,y)
 			return True
 		return False
 		
@@ -191,6 +192,7 @@ class MapBase:
 	
 	def revertTile(self, x, y):
 		self.collisionGrid.tiles[x][y] = self.collisionLayer.tiles[x][y]
+	
 		
 	def addPlayer(self, player, x=None, y=None):
 		if x == None:
@@ -199,12 +201,14 @@ class MapBase:
 		if player.id not in self.players:
 			self.players[player.id]=player
 			player._map = self
-		
+			self.players[player.id].setPos(x, y)
+			
 	def delPlayer(self, playerName):
 		del self.players[playerName]
 		
 	def update(self, dt):
 		for player in self.players.values():
 			player.update(dt)
+			#print "updated pos for player %s : %s / %s, direction : %s / %s" % (player.id, player.x, player.y, player.dx, player.dy)
 			
 	
