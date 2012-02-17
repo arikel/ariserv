@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 from tmxHandler import *
+import random
 
 class Item:
 	weight = 0.1
@@ -83,13 +84,14 @@ class MapObject:
 		self.dy = y
 
 	def update(self, dt=0.0):
-		if self.mobile:
-			self.move(self.dx*dt, self.dy*dt)
-	
-	def nextMovePossible(dt=0.0):
+		if self.mobile and self.nextMovePossible(dt):
+			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
+			
+	def nextMovePossible(self, dt=0.0):
 		if not self._map:
+			print "player has no map"
 			return False
-		if self._map.collidePos(self.x + self.dx*dt, self.y + self.dy*dt):
+		if self._map.posCollide(self.x + self.dx*self.speed*dt, self.y + self.dy*self.speed*dt):
 			return False
 		return True
 
@@ -129,9 +131,24 @@ class Mob(Being, MapObject):
 		self.mobile = True
 		self.category = "mob"
 		self.mobId = mobId
-		
 		self.setPos(x, y)
+		self.timer = 0
+		self.state = "idle"
 		
+	def update(self, dt=0.0):
+		self.timer += dt
+		#print "--- mob %s updating movement :"
+		if self.mobile and self.nextMovePossible(dt) and (self.dx!=0 or self.dy!=0):
+			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
+			#print "we moved ok..."
+			return False
+		elif self.mobile and self.timer > 5000:
+			self.timer = 0
+			self.dx = random.randint(1,3) -2
+			self.dy = random.randint(1,3) -2
+			print "mob %s changing movement %s / %s" % (self.id, self.dx, self.dy)
+			return True
+		return False
 		
 class Player(Being, MapObject):
 	def __init__(self, id, _map, x, y):
@@ -148,10 +165,8 @@ class MapBase:
 		if self.filename:
 			self.load(self.filename)
 		
-		self.mapObjects = []
-		self.mobs = []
-		self.players = []
-		self.npcs = []
+		self.mobs = {}
+		self.players = {}
 		
 	def load(self, filename):	
 		self.mapData = TmxMapData()
@@ -176,6 +191,10 @@ class MapBase:
 		)
 		
 	def tileCollide(self, x, y): # tile position collide test
+		if not (0<=x<len(self.collisionGrid.tiles)):
+			return True
+		if not (0<=y<len(self.collisionGrid.tiles[0])):
+			return True
 		if self.collisionGrid.tiles[x][y]>0:
 			#print "%s / %s collides" % (x,y)
 			return True
@@ -205,10 +224,25 @@ class MapBase:
 			
 	def delPlayer(self, playerName):
 		del self.players[playerName]
+	
+	def addMob(self, mob, x=None, y=None):
+		if x == None:
+			x = mob.x
+			y = mob.y
+		if mob.id not in self.mobs:
+			print "Engine : adding mob : %s -> %s" % (mob.id, mob)
+			self.mobs[mob.id]=mob
+			mob._map = self
+			self.mobs[mob.id].setPos(x, y)
+	
+	def delPlayer(self, mobId):
+		del self.mobs[mobId]
 		
 	def update(self, dt):
 		for player in self.players.values():
 			player.update(dt)
+		for mob in self.mobs.values():
+			mob.update(dt)
+			#print "updating mob %s : %s / %s, dt = %d" % (mob.id, mob.x, mob.y, dt)
 			#print "updated pos for player %s : %s / %s, direction : %s / %s" % (player.id, player.x, player.y, player.dx, player.dy)
 			
-	
