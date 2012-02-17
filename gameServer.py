@@ -4,6 +4,11 @@
 import sys
 from time import sleep
 #from weakref import WeakKeyDictionary
+try:
+	import psyco
+	psyco.full()
+except:
+	pass
 
 from PodSixNet.Server import Server
 from PodSixNet.Channel import Channel
@@ -41,10 +46,11 @@ class ClientChannel(Channel):
 		#self.name = data['nickname']
 		#if self.name != "anonymous":
 		self.id = data["id"]
-		self._server.SendPlayers()
+		
 		self._server.players[self.id] = self
-		self._server.mapPlayers[self.id] = Player(self.id, self._server.map, 50, 70)
+		self._server.map.addPlayer(Player(self.id, self._server.map, 50, 70))
 		print "player %s logged in." % (self.id)
+		self._server.SendPlayers()
 		#if "none" in self._server.players:
 		#	del self._server.players["none"]
 		
@@ -72,7 +78,9 @@ class ClientChannel(Channel):
 		dy = data['dy']
 		
 		self._server.SendToAll({"action": "update_move", "who": self.id, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
-	
+		
+		self._server.map.players[self.id].setPos(x, y)
+		self._server.map.players[self.id].setMovement(dx, dy)
 	
 	#-------------------------------------------------------------------
 	# chat
@@ -95,7 +103,7 @@ class GameServer(Server):
 		Server.__init__(self, *args, **kwargs)
 		self.playerChannels = {}#WeakKeyDictionary() # playerChannel -> True
 		self.players = {} # playerId -> playerChannel
-		self.mapPlayers = {} # playerId -> Player
+		
 		self.mobs = {} # id -> Mob
 		
 		self.db = dbHandler("db/essai.db")
@@ -104,10 +112,13 @@ class GameServer(Server):
 		
 		print 'Server launched'
 		
-		self.addMob("genericMob", 50,60)
-		self.mobs['genericMob'].setMovement(0,0)
+		for i in range(15):
+			name = "mob_" + str(i)
+			self.addMob(name, 50,60)
+			self.mobs[name].setMovement(0,0)
 		
 		self.prevTime = 0.0
+		self.nextMobUpdateTime = 0.0
 		pygame.init()
 		
 	def Connected(self, channel, addr):
@@ -152,9 +163,11 @@ class GameServer(Server):
 			#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
 			self.map.update(dt)
 			
-			for mob in self.mobs.values():
-				data = {'action' : 'mob_update_move', 'x':mob.x, 'y':mob.y, 'dx':mob.dx, 'dy':mob.dy, 'id':mob.id}
-				self.SendToAll(data)
+			if t>self.nextMobUpdateTime:
+				self.nextMobUpdateTime = t + 200
+				for mob in self.mobs.values():
+					data = {'action' : 'mob_update_move', 'x':mob.x, 'y':mob.y, 'dx':mob.dx, 'dy':mob.dy, 'id':mob.id}
+					self.SendToAll(data)
 			self.Pump()
 			sleep(0.0001)
 	
@@ -162,7 +175,15 @@ class GameServer(Server):
 	# server send to client
 	#-------------------------------------------------------------------
 	def SendPlayers(self):
+		
 		self.SendToAll({"action": "players", "players": [p.id for p in self.playerChannels], "who": "server"})
+		for p in self.playerChannels:
+			if p.id in self.map.players:
+				player = self.map.players[p.id]
+				self.SendToAll({"action": "update_move", "who": p.id, "x":player.x, "y":player.y, "dx":player.dx, "dy":player.dy})
+				#print "player in list known : %s is at %s %s" % (p.id, player.x, player.y)
+			else:
+				print "warning : %s not in map" % (p.id)
 	
 	def SendMobUpdateMove(self, mobId=1):
 		self.SendToAll({"action": "mob_update_move", "who": "server", "id":mobId, "x" : self.mobs[mobId].x, "y" : self.mobs[mobId].y, "dy" : self.mobs[mobId].dy})
