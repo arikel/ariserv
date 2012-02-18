@@ -84,9 +84,22 @@ class MapObject:
 		self.dy = y
 
 	def update(self, dt=0.0):
-		if self.mobile and self.nextMovePossible(dt):
+		if not self.mobile:
+			return
+		if self.nextMovePossible(dt):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
-			
+			return
+		oldDx = self.dx
+		oldDy = self.dy
+		
+		self.setMovement(0, self.dy)
+		if self.nextMovePossible(dt):
+			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
+		else:
+			self.setMovement(oldDx, 0)
+			if self.nextMovePossible(dt):
+				self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
+		
 	def nextMovePossible(self, dt=0.0):
 		if not self._map:
 			print "player has no map"

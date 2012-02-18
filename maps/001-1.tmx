@@ -26,7 +26,7 @@
  </layer>
  <layer name="collision" width="80" height="50" opacity="0.7">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+2ZQQ7DIBADw/8/3UNVqapoAphdG/BI3JrgDA0spFzXVdygZsawPwz7w7A/DPvDsD+MKH+nrO2r+2OPEdsf6vlEf701/KyMEc/KGD+VPdCMfqOz1+7P8Bf9nmWS4e9p7ojuJ5KdaptdnoNFr7+794IBe/zZ/X/4zaGS65u7tZCdg01Prd973b979fxWvT5BPKj9F1ZCwZ9ChlGysq/q54nReTML5bODyPtGoeYza20cvU79GWfWL7UaeCatNXbE2UHWecQs1HJlnuechNo496CQXXH/q+ClFXROPZ2VxroGOz+7f5TW/N5/YNifJur+nA/D+fbG/jDsD2OGv5PHwP7e+Pslhv1xsD+MXf1lfte2P/1+dqW4we0Fo9VfBIA+AAA=
+   H4sIAAAAAAAAA+2Z2w6DIBBE8f9/ug9Nk6ahyjJ7GWBOsm9VxkPVBa/W2qWCSswhfxjyhyF/GPKHIX8YUf5Oebev7q96jqr9oZ5P9Gft4b0yRlxrxfyxrIE8xo3O3jt/hb/o+yyTDH9Pz47ocSLZqbfZ5TqqsPq7uy8qqJ7/6vE//OZgyfXN3buwOkc1ll7fety/c1l+y96fIB7Y/gsrweCPIcMsWdlX9fPE7HMzC+a9g8jzRsHmM+vdOHsc+zV69i+9HtiT0R47Yu8gaz/CC7Zcmfs5J8E2zxYYsjOufxm8jII+U09npbnuUZ2/enyU0fxaf2DIHyfs/pQPQ/n2Rv4w5A/Dw9/JcyB/b9DvlyqVSqVSqVQr1Qtd6qwkgD4AAA==
   </data>
  </layer>
  <objectgroup name="objects" width="80" height="50">
