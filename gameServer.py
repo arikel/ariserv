@@ -65,10 +65,6 @@ class ClientChannel(Channel):
 	
 	#-------------------------------------------------------------------
 	# movements
-	
-	def Network_position(self, data):
-		#print "Pos msg to send to client : %s" % (data)
-		self._server.SendToAll({"action": "position", "message": data['message'], "who": self.id, "x":data['x'], "y":data['y']})
 		
 	def Network_update_move(self, data):
 		#print "Pos msg to send to client : %s" % (data)

@@ -11,12 +11,12 @@
  </tileset>
  <layer name="ground" width="80" height="50">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3TwQ2CQBRF0cEKrEBdudQ+tBEtRNE6DNqHgIWoDVCAiW+hCSGDGWHzJ9yEs5jd+zdh7pyrAAAABq6QUm4GtsToLg95GtgSI5fok1FC5y4m6jaVmadfvVlo59iluu8Q4BjQod5sKP0y3XcOcKGfV677igDln/1+/efwoxkAAAAAAAAQt53sa1ayNrArFqfGeyNbOnbu1+yYGthoWVu/r8zARsvo18+Lfr0tZUy/XhYtHenXreP1IzewCQAAAAAwLG//rjBZgD4AAA==
+   H4sIAAAAAAAAA+3ZsU0DMRSAYYcmLRMAVehgAxpIA1PQwSAQmAMBe5ALgwALMAASD8kPPZ0u8HKE2E/3S/mkOEVi/zm78SSl9A4AADBwjViI5wrmEtGLeBVvFcwlojSSl9ga0bmPHem2K/Y6+tlm3s7RzWR9Nw63jg622VD63cv6HhweA/ZrNvAbc1lf47BYsd9P+3xT9Dyxaj6Pa2jW9X8eZaX3QzT0o19Jep5ov5rOFgAAAAAAuox/GUdxJa6NU3FWwbyiuGuNL8Tlih3tnYvnXkV9PXMTsZ/H05bSbfr0a3ecOb7D3rl47lXUsTjJHbVZtH28rN93m3/op43O83vbr3SP2vtpO7tPx+bzaM/fxxr62Ts/z72e9iu99nU5FNt/6IeUDpZ0pF+/jk/ZvII5AQAAAACG5RMwwRFLgD4AAA==
   </data>
  </layer>
  <layer name="fringe" width="80" height="50">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+3YQQ7CIBAF0HoU4229pZ7EhRtjgk5ToMC8d4AJ/AxlyrYBAAAre17OXsEcHpVyqlWHtxnyHGWNo6xjFqW85EhJht74tcd7pTp7ZMg84jsHuZTNmE2LWf0arNnjLjxSy39MbjOe5xb+5bDnfl7Jmf1hzqkra563j/VG77vVs4pkEp1xIqIztreDsfbaez6s2XO0M1KP9hI5C5lycVbJyrtJH3KG/pw7gHX5xqMHOEoPMQq9SDYv3H3KpoA+AAA=
+   H4sIAAAAAAAAA+3Y3QnCMBQG0PqgziFu6wbqPu7hJgYKIsVqqPmzOQfyVEjT796StMMAAADAfZN/nm24tpuMfaL7rtVrnu/yu9Vb2lOq3vnVknW0kF8tc3m1Uk/yOIf6XsK4LqhzD71RYi+sMc+/m+Ygl3myGR0icyixF6oJS+md0bccTmWW0Zya/eGck1aveR4rfo+0mlVMJrFnnBixZ2z/Dvp61qmUPUc+PffoJz3l4l0FAAAAAIB8HmfNTvKAPgAA
   </data>
  </layer>
  <layer name="over" width="80" height="50">
@@ -26,10 +26,10 @@
  </layer>
  <layer name="collision" width="80" height="50" opacity="0.7">
   <data encoding="base64" compression="gzip">
-   H4sIAAAAAAAAA+2Z2w6DIBBE8f9/ug9Nk6ahyjJ7GWBOsm9VxkPVBa/W2qWCSswhfxjyhyF/GPKHIX8YUf5Oebev7q96jqr9oZ5P9Gft4b0yRlxrxfyxrIE8xo3O3jt/hb/o+yyTDH9Pz47ocSLZqbfZ5TqqsPq7uy8qqJ7/6vE//OZgyfXN3buwOkc1ll7fety/c1l+y96fIB7Y/gsrweCPIcMsWdlX9fPE7HMzC+a9g8jzRsHmM+vdOHsc+zV69i+9HtiT0R47Yu8gaz/CC7Zcmfs5J8E2zxYYsjOufxm8jII+U09npbnuUZ2/enyU0fxaf2DIHyfs/pQPQ/n2Rv4w5A/Dw9/JcyB/b9DvlyqVSqVSqVQr1Qtd6qwkgD4AAA==
+   H4sIAAAAAAAAA+2a0QrCMBAEm///aZ8EKSak2VxuT2dgERTT7TTBNtiu62pECqyBPw38aeBPA38a+NOI8vcvv+3408j2V91zhr+n9/C7+kWe50lcnoHax+tqn+juO+ZfVI/RZy7+RseM9Ncbb9ZVFX8O3Ls4rd8KnPTn5npHn1+Yf/cOJztV8+dwvXax6s9tzWddE5f1WxUHf9nHVzjlr7KjEbN7JFk47x28x600N9x8Zj+7R3wvapze2FH3L9F7Ak/2CEbvK7iuX8dO39jtr8p578J1/s3g0NvRn1ufEYq/SucZheP8qwT+NPCngT8N/GngTwN/GvjTwJ8G/jTwp9H7LxQhhBBCiHNeayebn4A+AAA=
   </data>
  </layer>
- <objectgroup name="objects" width="80" height="50">
+ <objectgroup name="objects" width="80" height="50" visible="0">
   <object name="machin" type="truc" x="274" y="189" width="127" height="158">
    <properties>
     <property name="damage" value="50"/>
