@@ -18,5 +18,5 @@ def ustr(o):
 	#	return o.value()
 	return unicode(str(o.encode("utf-8")))
 
-def getDist(a, b):
+def getDist(a, b):# a, b == Rect or derivative : Player, Mob...
 	return math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)
