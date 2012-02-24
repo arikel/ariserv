@@ -104,7 +104,8 @@ class GameServer(Server):
 		
 		self.db = dbHandler("db/essai.db")
 		
-		self.map = MapBase("maps/001-1.tmx")
+		#self.map = MapBase("maps/001-1.tmx")
+		self.map = GameMap("maps/testmap.txt")
 		
 		print 'Server launched'
 		

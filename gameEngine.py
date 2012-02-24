@@ -155,7 +155,8 @@ class Mob(Being, MapObject):
 			return
 		if self.nextMovePossible(dt):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
-		
+		else:
+			self.setMovement(0,0)
 		#print "--- mob %s updating movement :"
 		if self.timer > 5000:
 			self.timer = 0
@@ -168,7 +169,8 @@ class Mob(Being, MapObject):
 			self.dy = random.randint(1,3) -2
 			#print "mob %s changing movement %s / %s" % (self.id, self.dx, self.dy)
 			return True
-			
+		
+		
 		
 		return False
 		
@@ -270,3 +272,269 @@ class MapBase:
 			#print "updating mob %s : %s / %s, dt = %d" % (mob.id, mob.x, mob.y, dt)
 			#print "updated pos for player %s : %s / %s, direction : %s / %s" % (player.id, player.x, player.y, player.dx, player.dy)
 			
+
+class MapLayer(object):
+	def __init__(self, name, w, h, tileWidth=16, tileHeight=16):
+		self.name = name
+		self.w = w # width in tiles
+		self.h = h # height in tiles
+		self.tileWidth = tileWidth
+		self.tileHeight = tileHeight
+		
+		self.tiles = [] # [x][y] : code
+		for x in range(self.w):
+			line = []
+			for y in range(self.h):
+				line.append("0000")
+			self.tiles.append(line)
+		
+	def isValidPos(self, x, y):
+		if (0<=x<self.w) and (0<=y<self.h):
+			return True
+		return False
+		
+	def getTile(self, x, y):
+		return self.tiles[x][y]
+		
+	def setTile(self, x, y, code):
+		self.tiles[x][y] = code
+		
+	def clearTile(self, x, y):
+		if self.name == "collision":
+			self.tiles[x][y] = 0
+		else:
+			self.tiles[x][y] = "0000"
+		
+	def fill(self, code):
+		for x in range(self.w):
+			for y in range(self.h):
+				self.setTile(x,y,code)
+	
+	def setSize(self, w, h):
+		print "Layer %s setting size : %s %s" % (self.name, w, h)
+		self.oldTiles = self.tiles
+		self.tiles = [] # [x][y] : code
+		self.w = w
+		self.h = h
+		
+		for x in range(self.w):
+			line = []
+			for y in range(self.h):
+				if len(self.oldTiles)>x and len(self.oldTiles[0])>y:
+					#print "copying tile %s %s (max = %s %s)" % (x, y, len(self.oldTiles), len(self.oldTiles[0]))
+					line.append(self.oldTiles[x][y])
+				else:
+					line.append("gggg")
+		
+			self.tiles.append(line)
+			
+		
+	def setData(self, data):
+		tilecodes = data.split(",")
+		if len(tilecodes) != self.w * self.h:
+			print "data not matching width and height"
+			return False
+		n = 0
+		for x in range(self.w):
+			for y in range(self.h):
+				self.setTile(x, y, tilecodes[n])
+				n +=1
+	
+	def getSaveData(self):
+		data = []
+		for x in range(self.w):
+			for y in range(self.h):
+				data.append(self.getTile(x, y))
+		data = str(data)
+		data = data.replace("[", "")
+		data = data.replace("]", "")
+		data = data.replace("'", "")
+		data = data.replace('"', '')
+		data = data.replace(' ', '')
+		return data
+
+class GameMap:
+	def __init__(self, filename=None):
+		self.filename = filename
+		
+		self.tileWidth = 16
+		self.tileHeight = 16
+		self.layers = {} # name : MapLayer
+		
+		if self.filename:
+			self.load(self.filename)
+		
+		self.mobs = {}
+		self.players = {}
+	
+	def addLayer(self, name):
+		self.layers[name] = MapLayer(name, self.w, self.h, self.tileWidth, self.tileHeight)
+		
+	
+	def getSaveData(self):
+		data = ""
+		data = data + "w = " + str(self.w) + "\n\n"
+		data = data + "h = " + str(self.h) + "\n\n"
+		
+		for layerName in self.layers:
+			data = data + layerName + " = " + str(self.layers[layerName].getSaveData()) + "\n\n"
+		return data
+		
+	def save(self, filename):
+		self.filename = filename
+		f = open(filename, "w")
+		f.write(self.getSaveData())
+		f.close()
+		print "Map saved in %s" % (filename)
+		
+		
+	def load(self, filename):	
+		self.filename = filename
+		content = open(filename).read()
+		for line in content.split("\n"):
+			line = line.strip()
+			if len(line)<2:
+				continue
+			if "=" in line:
+				if len(line.split("="))!=2: continue
+				key , value = line.split("=")
+				if key.strip() == "w":
+					self.w = int(value.strip())
+				elif key.strip() == "h":
+					self.h = int(value.strip())
+				else:
+					codes = value.split(',')
+					if len(codes) == self.w * self.h:
+						layerName = key.strip()
+						value = value.strip()
+						print "Loading layer %s" % (layerName)
+						self.addLayer(layerName)
+						self.layers[layerName].setData(value)
+		self.makeCollisionGrid()
+		
+	def makeCollisionGrid(self):
+		if not self.filename:return False
+		self.addLayer("collision")
+		for x in range(self.w):
+			for y in range(self.h):
+				if self.layers["ground"].getTile(x, y) == "wwww":
+					self.layers["collision"].tiles[x][y] = 1
+				else:
+					self.layers["collision"].tiles[x][y] = 0
+		
+		
+	def isValidPos(self, x, y):
+		if (0<=x<self.w) and (0<=y<self.h):
+			return True
+		return False
+		
+	def setSize(self, x, y):
+		for layerName in self.layers:
+			self.w = x
+			self.h = y
+			self.layers[layerName].setSize(x, y)
+			
+	def clearTile(self, layerName, x, y):
+		self.layers[layerName].clearTile(x, y)
+		
+	def setTile(self, layerName, x, y, code):
+		if not layerName in self.layers:return
+		if not self.isValidPos(x, y):return
+		if code == self.layers[layerName].getTile(x, y):return
+		
+		
+		self.layers[layerName].setTile(x, y, code)
+		if layerName == "collision":
+			return
+		
+		# check tile up left
+		if self.isValidPos(x-1, y-1):
+			oldCode = self.layers[layerName].getTile(x-1, y-1)
+			newCode = oldCode[0:3] + code[0]
+			self.layers[layerName].setTile(x-1, y-1, newCode)
+			
+			
+		# check tile up
+		if self.isValidPos(x, y-1):
+			oldCode = self.layers[layerName].getTile(x, y-1)
+			newCode = oldCode[0:2] + code[0:2]
+			self.layers[layerName].setTile(x, y-1, newCode)
+			
+		# check tile up right
+		if self.isValidPos(x+1, y-1):
+			oldCode = self.layers[layerName].getTile(x+1, y-1)
+			newCode = oldCode[0:2] + code[1] + oldCode[3]
+			self.layers[layerName].setTile(x+1, y-1, newCode)
+			
+		# check tile left
+		if self.isValidPos(x-1, y):
+			oldCode = self.layers[layerName].getTile(x-1, y)
+			newCode = oldCode[0] + code[1] + oldCode[2] + code[3]
+			self.layers[layerName].setTile(x-1, y, newCode)
+			
+		# check tile right
+		if self.isValidPos(x+1, y):
+			oldCode = self.layers[layerName].getTile(x+1, y)
+			newCode = code[0] + oldCode[1] + code[2] + oldCode[3]
+			self.layers[layerName].setTile(x+1, y, newCode)
+			
+		# check tile down left
+		if self.isValidPos(x-1, y+1):
+			oldCode = self.layers[layerName].getTile(x-1, y+1)
+			newCode = oldCode[0] + code[2] + oldCode[2:4]
+			self.layers[layerName].setTile(x-1, y+1, newCode)
+			
+		# check tile down
+		if self.isValidPos(x, y+1):
+			oldCode = self.layers[layerName].getTile(x, y+1)
+			newCode = code[0:2] + oldCode[2:4]
+			self.layers[layerName].setTile(x, y+1, newCode)
+			
+		# check tile down right
+		if self.isValidPos(x+1, y+1):
+			oldCode = self.layers[layerName].getTile(x+1, y+1)
+			newCode = code[0] + oldCode[1:4]
+			self.layers[layerName].setTile(x+1, y+1, newCode)
+			
+	
+	def tileCollide(self, x, y): # tile position collide test
+		if not self.isValidPos(x, y):
+			return True
+		if self.layers["collision"].tiles[x][y]>0:
+			return True
+		return False
+		
+	def posCollide(self, x, y): # pixel position collide test
+		return self.tileCollide(int(x)/self.tileWidth, int(y)/self.tileHeight)
+		
+	
+	def addPlayer(self, player, x=None, y=None):
+		if x == None:
+			x = player.x
+			y = player.y
+		if player.id not in self.players:
+			self.players[player.id]=player
+			player._map = self
+			self.players[player.id].setPos(x, y)
+			
+	def delPlayer(self, playerName):
+		del self.players[playerName]
+	
+	def addMob(self, mob, x=None, y=None):
+		if x == None:
+			x = mob.x
+			y = mob.y
+		if mob.id not in self.mobs:
+			#print "Engine : adding mob : %s -> %s" % (mob.id, mob)
+			self.mobs[mob.id]=mob
+			mob._map = self
+			self.mobs[mob.id].setPos(x, y)
+	
+	def delMob(self, mobId):
+		del self.mobs[mobId]
+		
+	def update(self, dt):
+		for player in self.players.values():
+			player.update(dt)
+		for mob in self.mobs.values():
+			mob.update(dt)
