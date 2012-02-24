@@ -90,8 +90,11 @@ class ClientChannel(Channel):
 			msg = "%s not connected" % (data["target"])
 			self._server.SendTo(self.id, {"action": "private_message", "message": msg, "who": 'server'})
 	
-	
-	
+	def Network_emote(self, data):
+		id = data['id']
+		emote = data['emote']
+		self._server.SendToAll({"action": "emote", "id": self.id, "emote" : emote})
+		
 class GameServer(Server):
 	channelClass = ClientChannel
 	
