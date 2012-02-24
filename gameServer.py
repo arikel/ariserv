@@ -108,7 +108,7 @@ class GameServer(Server):
 		self.db = dbHandler("db/essai.db")
 		
 		#self.map = MapBase("maps/001-1.tmx")
-		self.map = GameMap("maps/testmap.txt")
+		self.map = GameMap(self, "maps/testmap.txt")
 		
 		print 'Server launched'
 		
@@ -163,11 +163,11 @@ class GameServer(Server):
 			#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
 			self.map.update(dt)
 			
-			if t>self.nextMobUpdateTime:
-				self.nextMobUpdateTime = t + 200
-				for mob in self.mobs.values():
-					data = {'action' : 'mob_update_move', 'x':mob.x, 'y':mob.y, 'dx':mob.dx, 'dy':mob.dy, 'id':mob.id}
-					self.SendToAll(data)
+			#if t>self.nextMobUpdateTime:
+			#	self.nextMobUpdateTime = t + 200
+			#	for mob in self.mobs.values():
+			#		data = {'action' : 'mob_update_move', 'x':mob.x, 'y':mob.y, 'dx':mob.dx, 'dy':mob.dy, 'id':mob.id}
+			#		self.SendToAll(data)
 			self.Pump()
 			sleep(0.0001)
 	
@@ -185,8 +185,8 @@ class GameServer(Server):
 			else:
 				print "warning : %s not in map" % (p.id)
 	
-	def SendMobUpdateMove(self, mobId=1):
-		self.SendToAll({"action": "mob_update_move", "who": "server", "id":mobId, "x" : self.mobs[mobId].x, "y" : self.mobs[mobId].y, "dy" : self.mobs[mobId].dy})
+	def SendMobUpdateMove(self, id):
+		self.SendToAll({"action": "mob_update_move", "id": id, "mobId":self.mobs[id].mobId, "x" : self.mobs[id].x, "y" : self.mobs[id].y, "dx" : self.mobs[id].dx, "dy" : self.mobs[id].dy})
 	
 	def SendMobs(self):
 		self.SendToAll({"action": "mobs", "mobs": [p.id for p in self.mobs], "who": "server"})

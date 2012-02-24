@@ -157,16 +157,19 @@ class Mob(Being, MapObject):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
 		else:
 			self.setMovement(0,0)
+			self._map._server.SendMobUpdateMove(self.id)
 		#print "--- mob %s updating movement :"
 		if self.timer > 5000:
 			self.timer = 0
 			if random.randint(1,2)>1:
 				self.dx = 0
 				self.dy = 0
+				self._map._server.SendMobUpdateMove(self.id)
 				return False
 			
 			self.dx = random.randint(1,3) -2
 			self.dy = random.randint(1,3) -2
+			self._map._server.SendMobUpdateMove(self.id)
 			#print "mob %s changing movement %s / %s" % (self.id, self.dx, self.dy)
 			return True
 		
@@ -354,7 +357,8 @@ class MapLayer(object):
 		return data
 
 class GameMap:
-	def __init__(self, filename=None):
+	def __init__(self, server, filename=None):
+		self._server = server
 		self.filename = filename
 		
 		self.tileWidth = 16
