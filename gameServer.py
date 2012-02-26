@@ -18,6 +18,11 @@ from functions import ustr, getDist
 from dbHandler import dbHandler
 from gameEngine import *
 
+
+#-----------------------------------------------------------------------
+# ClientChannel : connection to the client
+#-----------------------------------------------------------------------
+
 class ClientChannel(Channel):
 	"""
 	This is the server representation of a single connected client.
@@ -58,6 +63,9 @@ class ClientChannel(Channel):
 		self.id = data['id']
 		self.password = data['password']
 		if self._server.db.checkLogin(self.id, self.password):
+			if self.id in self._server.players:
+				print "Error, %s is already connected"
+				
 			self._server.players[self.id] = self
 			self._server.SendPlayers()
 			if "none" in self._server.players:
@@ -94,7 +102,12 @@ class ClientChannel(Channel):
 		id = data['id']
 		emote = data['emote']
 		self._server.SendToAll({"action": "emote", "id": self.id, "emote" : emote})
-		
+
+
+
+#-----------------------------------------------------------------------
+# GameServer
+#-----------------------------------------------------------------------
 class GameServer(Server):
 	channelClass = ClientChannel
 	
@@ -163,11 +176,6 @@ class GameServer(Server):
 			#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
 			self.map.update(dt)
 			
-			#if t>self.nextMobUpdateTime:
-			#	self.nextMobUpdateTime = t + 200
-			#	for mob in self.mobs.values():
-			#		data = {'action' : 'mob_update_move', 'x':mob.x, 'y':mob.y, 'dx':mob.dx, 'dy':mob.dy, 'id':mob.id}
-			#		self.SendToAll(data)
 			self.Pump()
 			sleep(0.0001)
 	

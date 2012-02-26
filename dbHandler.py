@@ -42,9 +42,22 @@ class dbHandler(object):
 			date text)""")
 		
 	def addPlayer(self, name, password):
+		if self.hasPlayer(name):
+			print "Couldn't create player %s : that name already exists." % (name)
+			return False
+		if len(name)>30:
+			print "Couldn't create player %s : that name is way too long!" % (name)
+			return False
+			
+		if " " in name:
+			print "Couldn't create player %s : no space allowed in name!" % (name)
+			return False
+		
 		today = time.strftime("%Y%m%d%H%M")
 		msg = """insert into players values(NULL, '%s', '%s', '%s')""" % (name, password, today)
 		self.execute(msg)
+		print "Created player %s" % (name)
+		
 		
 	def delPlayer(self, name):
 		msg = """remove from players where name='%s'""" % (name)
@@ -75,7 +88,12 @@ class dbHandler(object):
 	
 	def createCharTable(self):
 		self.execute("""create table characters(
-			
+			playerId integer,
+			id text,
+			sex text,
+			map text,
+			x text,
+			y text
 			)""")
 	
 	#-------------------------------------------------------------------
@@ -84,7 +102,11 @@ class dbHandler(object):
 	
 	def createItemTable(self):
 		self.execute("""create table items(
-			
+				itemId integer,
+				name text,
+				category text,
+				weight text
+				
 			)""")
 		
 	def createInventoryTable(self):
