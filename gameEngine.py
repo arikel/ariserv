@@ -51,7 +51,6 @@ class MapObject:
 		# float pixel position on map
 		self.category = None
 		self.currentMapName = None
-		self._map = None
 		self.x = 0.0
 		self.y = 0.0
 		self.mapRect = pygame.Rect(0,0,1,1)
@@ -89,6 +88,8 @@ class MapObject:
 		if self.nextMovePossible(dt):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
 			return
+		
+		# in case of collision, handle possible sliding
 		oldDx = self.dx
 		oldDy = self.dy
 		
@@ -157,19 +158,19 @@ class Mob(Being, MapObject):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
 		else:
 			self.setMovement(0,0)
-			self._map._server.SendMobUpdateMove(self.id)
+			self._map.sendMobUpdateMove(self.id)
 		#print "--- mob %s updating movement :"
 		if self.timer > 5000:
 			self.timer = 0
 			if random.randint(1,2)>1:
 				self.dx = 0
 				self.dy = 0
-				self._map._server.SendMobUpdateMove(self.id)
+				self._map.sendMobUpdateMove(self.id)
 				return False
 			
 			self.dx = random.randint(1,3) -2
 			self.dy = random.randint(1,3) -2
-			self._map._server.SendMobUpdateMove(self.id)
+			self._map.sendMobUpdateMove(self.id)
 			#print "mob %s changing movement %s / %s" % (self.id, self.dx, self.dy)
 			return True
 		
@@ -364,10 +365,12 @@ class GameMap:
 		self.tileWidth = 16
 		self.tileHeight = 16
 		self.layers = {} # name : MapLayer
+		self.name = None
 		
 		if self.filename:
 			self.load(self.filename)
 		
+			
 		self.mobs = {}
 		self.players = {}
 	
@@ -376,9 +379,16 @@ class GameMap:
 		
 	
 	def getSaveData(self):
+		if not self.name:
+			if self.filename:
+				self.name = self.filename
+			else:
+				self.name = "defaultMapName"
+		
 		data = ""
-		data = data + "w = " + str(self.w) + "\n\n"
-		data = data + "h = " + str(self.h) + "\n\n"
+		data = data + "name = " + str(self.name) + "\n"
+		data = data + "w = " + str(self.w) + "\n"
+		data = data + "h = " + str(self.h) + "\n"
 		
 		for layerName in self.layers:
 			data = data + layerName + " = " + str(self.layers[layerName].getSaveData()) + "\n\n"
@@ -402,7 +412,9 @@ class GameMap:
 			if "=" in line:
 				if len(line.split("="))!=2: continue
 				key , value = line.split("=")
-				if key.strip() == "w":
+				if key.strip() == "name":
+					self.name = value.strip()
+				elif key.strip() == "w":
 					self.w = int(value.strip())
 				elif key.strip() == "h":
 					self.h = int(value.strip())
@@ -411,10 +423,11 @@ class GameMap:
 					if len(codes) == self.w * self.h:
 						layerName = key.strip()
 						value = value.strip()
-						print "Loading layer %s" % (layerName)
+						#print "Loading layer %s" % (layerName)
 						self.addLayer(layerName)
 						self.layers[layerName].setData(value)
 		self.makeCollisionGrid()
+		#print "Loaded map : %s" % (self.name)
 		
 	def makeCollisionGrid(self):
 		if not self.filename:return False
@@ -512,30 +525,35 @@ class GameMap:
 		return self.tileCollide(int(x)/self.tileWidth, int(y)/self.tileHeight)
 		
 	
-	def addPlayer(self, player, x=None, y=None):
-		if x == None:
-			x = player.x
-			y = player.y
-		if player.id not in self.players:
-			self.players[player.id]=player
-			player._map = self
-			self.players[player.id].setPos(x, y)
+	def addPlayer(self, playerId, x, y):
+		if playerId not in self.players:
+			self.players[playerId]=Player(playerId, self, x, y)
 			
 	def delPlayer(self, playerName):
 		del self.players[playerName]
 	
-	def addMob(self, mob, x=None, y=None):
-		if x == None:
-			x = mob.x
-			y = mob.y
-		if mob.id not in self.mobs:
-			#print "Engine : adding mob : %s -> %s" % (mob.id, mob)
-			self.mobs[mob.id]=mob
-			mob._map = self
-			self.mobs[mob.id].setPos(x, y)
+	def sendPlayerUpdateMove(self, playerName):
+		player = self.players[playerName]
+		self._server.SendPlayerUpdateMove(self.name, playerName, player.x, player.y, player.dx, player.dy)
+	
+	def getNewMobId(self):
+		id = "mob_"
+		n = 1
+		while id + str(n) in self.mobs:
+			n +=1
+		return id + str(n)
+	
+	def addMob(self, mobId, x, y):
+		newId = self.getNewMobId()
+		self.mobs[newId]=Mob(newId, mobId, self, x, y)
+		#self.mobs[mob.id].setPos(x, y)
 	
 	def delMob(self, mobId):
 		del self.mobs[mobId]
+	
+	def sendMobUpdateMove(self, mobId):
+		mob = self.mobs[mobId]
+		self._server.SendMobUpdateMove(self.name, mobId, mob.x, mob.y, mob.dx, mob.dy)
 		
 	def update(self, dt):
 		for player in self.players.values():

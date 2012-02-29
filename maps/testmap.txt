@@ -1,3 +1,5 @@
+name = start
+
 w = 80
 
 h = 60

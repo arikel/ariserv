@@ -4,6 +4,10 @@
 import sys
 import sqlite3
 import time
+import hashlib
+
+def encodePassword(password):
+	return hashlib.md5(password).hexdigest()
 
 class dbHandler(object):
 	def __init__(self, dbfile):
@@ -23,12 +27,17 @@ class dbHandler(object):
 	#-------------------------------------------------------------------	
 	def initTables(self):
 		self.createPlayersTable()
+		self.createCharTable()
+		self.createItemTable()
+		self.createInventoryTable()
+		self.createStorageTable()
 		
 	def reset(self):
 		self.execute("""drop table players""")
 		self.execute("""drop table characters""")
 		self.execute("""drop table items""")
 		self.execute("""drop table inventory""")
+		self.execute("""drop table storage""")
 	
 	#-------------------------------------------------------------------
 	# players table
@@ -54,7 +63,7 @@ class dbHandler(object):
 			return False
 		
 		today = time.strftime("%Y%m%d%H%M")
-		msg = """insert into players values(NULL, '%s', '%s', '%s')""" % (name, password, today)
+		msg = """insert into players values(NULL, '%s', '%s', '%s')""" % (name, encodePassword(password), today)
 		self.execute(msg)
 		print "Created player %s" % (name)
 		
@@ -78,7 +87,7 @@ class dbHandler(object):
 	def checkLogin(self, name, password):
 		res = self.execute("""select * from players where name = '%s'""" % (name))
 		if len(res)>0:
-			if res[2]==password:
+			if res[2]==encodePassword(password):
 				return True
 		return False
 	
@@ -91,6 +100,7 @@ class dbHandler(object):
 			playerId integer,
 			id text,
 			sex text,
+			gmLevel integer,
 			map text,
 			x text,
 			y text
@@ -116,5 +126,11 @@ class dbHandler(object):
 			quantity integer
 			)""")
 			
-	
+	def createStorageTable(self):
+		self.execute("""create table storage(
+			ownerName text,
+			itemId integer,
+			quantity integer
+			)""")
+			
 #dbhandler = dbHandler("db/essai.db")
