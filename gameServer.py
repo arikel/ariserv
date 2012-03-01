@@ -114,7 +114,7 @@ class ClientChannel(Channel):
 	
 	def Network_emote(self, data):
 		emote = data['emote']
-		self._server.SendToMap(self.playerMaps[self.id], {"action": "emote", "id": self.id, "emote" : emote})
+		self._server.SendToMap(self._server.playerMaps[self.id], {"action": "emote", "id": self.id, "emote" : emote})
 
 
 
