@@ -75,6 +75,11 @@ class ClientChannel(Channel):
 				del self._server.players["none"]
 	
 	#-------------------------------------------------------------------
+	# info request
+	def Network_warp_info_request(self, data={}):
+		self._server.SendWarpInfo(self.id)
+	
+	#-------------------------------------------------------------------
 	# movements
 	
 	def Network_player_update_move(self, data):
@@ -205,6 +210,16 @@ class GameServer(Server):
 		for playerName in mapPlayers:
 			player = self.maps[mapName].players[playerName]
 			self.SendPlayerUpdateMove(mapName, playerName, player.x, player.y, player.dx, player.dy)
+	
+	def SendWarpInfo(self, playerId):
+		mapName = self.playerMaps[playerId]
+		for warp in self.maps[mapName].warps:
+			name = warp.name
+			x = warp.x
+			y = warp.y
+			w = warp.w
+			h = warp.h
+			self.SendTo(playerId, {'action':'warp_info', 'name':name, 'x':x, 'y':y, 'w':w, 'h':h})
 	
 	def SendPlayerUpdateMove(self, mapName, playerName, x, y, dx, dy):
 		self.SendToMap(mapName, {"action": "player_update_move", "id": playerName, "x" : x, "y" : y, "dx" : dx, "dy" : dy})

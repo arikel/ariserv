@@ -1,3 +1,3 @@
 name : start
 file : maps/testmap.txt
-warp : to Second,0,0,20,2,second,30,10
+warp : to Second,0,0,10,1,second,5,5
