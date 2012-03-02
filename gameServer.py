@@ -9,6 +9,7 @@ try:
 	psyco.full()
 except:
 	pass
+#import random
 
 from PodSixNet.Server import Server
 from PodSixNet.Channel import Channel
@@ -229,6 +230,8 @@ class GameServer(Server):
 	def SendMobLeaveMap(self, mapName, mobId):
 		self.SendToMap(mapName, {"action": "mob_leave_map", "id": mobId})
 	
+	def SendMobTookDamage(self, mapName, mobId, dmg):
+		self.SendToMap(mapName, {"action": "mob_took_damage", "id": mobId, "dmg":dmg})
 	
 	def addMap(self, filePath):
 		m = GameMap(self, filePath)
@@ -281,7 +284,9 @@ class GameServer(Server):
 		if dist > 35.0:
 			return
 		self.maps[mapName].delMob(mobId)
+		self.SendMobTookDamage(mapName, mobId, random.randint(1,6))
 		self.SendMobLeaveMap(mapName, mobId)
+		
 '''
 # get command line argument of server, port
 if len(sys.argv) != 2:

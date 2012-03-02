@@ -130,6 +130,10 @@ class Being(object):
 		# keep hp between 0 and hpMax
 		self.hp = min(max(self.hp, 0), self.maxHp)
 		
+	def takeDamage(self, n):
+		self.hp -= n
+		self.hp = min(max(self.hp, 0), self.maxHp)
+		
 	def getCarac(self, caracName):
 		if caracName in self.carac:
 			return self.carac[caracName]
