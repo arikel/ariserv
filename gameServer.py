@@ -37,11 +37,8 @@ class ClientChannel(Channel):
 		self._server.DelPlayerChannel(self)
 		self._server.delPlayer(self.id)
 	
-	##################################
-	### Network specific callbacks ###
-	##################################
 	#-------------------------------------------------------------------
-	# on server receive from client self.nickname :
+	# on server receive from client self.id :
 	#-------------------------------------------------------------------
 	
 	#-------------------------------------------------------------------
@@ -99,6 +96,13 @@ class ClientChannel(Channel):
 		self._server.warpPlayer(id, "second", 50,70)
 		
 	#-------------------------------------------------------------------
+	# attack
+	
+	def Network_attack_mob(self, data):
+		target = data['target']
+		self._server.OnPlayerAttackMob(self.id, target)
+	
+	#-------------------------------------------------------------------
 	# chat
 	def Network_public_message(self, data):
 		mapName = self._server.playerMaps[self.id]
@@ -149,11 +153,35 @@ class GameServer(Server):
 		
 		pygame.init()
 		
-	def addMap(self, filePath):
-		m = GameMap(self, filePath)
-		self.maps[m.name] = m
-		print "Map '%s' added to server" % (m.name)
-		
+	#-------------------------------------------------------------------
+	# generic purpose server to client
+	#-------------------------------------------------------------------
+	
+	def SendTo(self, playerName, data):
+		self.players[playerName].Send(data)
+	
+	def SendToAll(self, data):
+		[p.Send(data) for p in self.playerChannels]
+	
+	def SendToMap(self, mapName, data):
+		for playerName in self.maps[mapName].players:
+			self.SendTo(playerName, data)
+	
+	def Launch(self):
+		while True:
+			t = pygame.time.get_ticks()
+			dt = t - self.prevTime
+			self.prevTime = t
+			
+			#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
+			for m in self.maps:
+				self.maps[m].update(dt)
+			
+			self.Pump()
+			sleep(0.0001)
+	
+	
+	
 	def Connected(self, channel, addr):
 		self.AddPlayerChannel(channel)
 	
@@ -165,6 +193,51 @@ class GameServer(Server):
 		print "Deleting Player connection for " + str(playerChannel.addr)
 		del self.playerChannels[playerChannel]
 		#self.SendPlayers()
+		
+	#-------------------------------------------------------------------
+	# server messages to client
+	#-------------------------------------------------------------------
+	def SendPlayers(self):
+		for mapName in self.maps:
+			self.SendMapPlayers(mapName)
+			
+	def SendMapPlayers(self, mapName):
+		mapPlayers = self.maps[mapName].players.keys()
+		for playerName in mapPlayers:
+			player = self.maps[mapName].players[playerName]
+			self.SendPlayerUpdateMove(mapName, playerName, player.x, player.y, player.dx, player.dy)
+	
+	def SendPlayerUpdateMove(self, mapName, playerName, x, y, dx, dy):
+		self.SendToMap(mapName, {"action": "player_update_move", "id": playerName, "x" : x, "y" : y, "dx" : dx, "dy" : dy})
+	
+	def SendMobUpdateMove(self, mapName, mobId, x, y, dx, dy):
+		self.SendToMap(mapName, {"action": "mob_update_move", "id": mobId, "x" : x, "y" : y, "dx" : dx, "dy" : dy})
+	
+	def SendPlayerEnterMap(self, mapName, playerName):
+		player = self.maps[mapName].players[playerName]
+		x = player.x
+		y = player.y
+		dx = player.dx
+		dy = player.dy
+		self.SendToMap(mapName, {"action": "player_enter_map", "id": playerName, "x":x, "y":y, "dx":dx, "dy":dy})
+	
+	def SendPlayerLeaveMap(self, mapName, playerName):
+		self.SendToMap(mapName, {"action": "player_leave_map", "id": playerName})
+	
+	def SendPlayerWarp(self, mapName, playerName, x, y):
+		mapFileName = self.maps[mapName].filename
+		self.SendTo(playerName, {"action": "warp", "mapFileName" : mapFileName, "x":x, "y":y})	
+	
+	def SendMobLeaveMap(self, mapName, mobId):
+		self.SendToMap(mapName, {"action": "mob_leave_map", "id": mobId})
+	
+	
+	def addMap(self, filePath):
+		m = GameMap(self, filePath)
+		self.maps[m.name] = m
+		print "Map '%s' added to server" % (m.name)
+		
+	
 	
 	def addPlayer(self, mapName, playerName, x=50.0, y=50.0):
 		self.playerMaps[playerName] = mapName
@@ -200,67 +273,17 @@ class GameServer(Server):
 		self.maps[mapName].addMob(mobId, x, y)
 		
 		
-	#-------------------------------------------------------------------
-	# generic purpose server to client
-	#-------------------------------------------------------------------
-	
-	def SendTo(self, playerName, data):
-		self.players[playerName].Send(data)
-	
-	def SendToAll(self, data):
-		[p.Send(data) for p in self.playerChannels]
-	
-	def SendToMap(self, mapName, data):
-		for playerName in self.maps[mapName].players:
-			self.SendTo(playerName, data)
-	
-	def Launch(self):
-		while True:
-			t = pygame.time.get_ticks()
-			dt = t - self.prevTime
-			self.prevTime = t
-			
-			#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
-			for m in self.maps:
-				self.maps[m].update(dt)
-			
-			self.Pump()
-			sleep(0.0001)
-	
-	#-------------------------------------------------------------------
-	# server messages to client
-	#-------------------------------------------------------------------
-	def SendPlayers(self):
-		for mapName in self.maps:
-			self.SendMapPlayers(mapName)
-			
-	def SendMapPlayers(self, mapName):
-		mapPlayers = self.maps[mapName].players.keys()
-		for playerName in mapPlayers:
-			player = self.maps[mapName].players[playerName]
-			self.SendPlayerUpdateMove(mapName, playerName, player.x, player.y, player.dx, player.dy)
-	
-	def SendPlayerUpdateMove(self, mapName, playerName, x, y, dx, dy):
-		self.SendToMap(mapName, {"action": "player_update_move", "id": playerName, "x" : x, "y" : y, "dx" : dx, "dy" : dy})
-	
-	def SendMobUpdateMove(self, mapName, mobId, x, y, dx, dy):
-		self.SendToMap(mapName, {"action": "mob_update_move", "id": mobId, "x" : x, "y" : y, "dx" : dx, "dy" : dy})
-	
-	def SendPlayerEnterMap(self, mapName, playerName):
-		player = self.maps[mapName].players[playerName]
-		x = player.x
-		y = player.y
-		dx = player.dx
-		dy = player.dy
-		self.SendToMap(mapName, {"action": "player_enter_map", "id": playerName, "x":x, "y":y, "dx":dx, "dy":dy})
-	
-	def SendPlayerLeaveMap(self, mapName, playerName):
-		self.SendToMap(mapName, {"action": "player_leave_map", "id": playerName})
-	
-	def SendPlayerWarp(self, mapName, playerName, x, y):
-		mapFileName = self.maps[mapName].filename
-		self.SendTo(playerName, {"action": "warp", "mapFileName" : mapFileName, "x":x, "y":y})
-	
+	def OnPlayerAttackMob(self, playerId, mobId):
+		if playerId not in self.playerMaps:
+			return
+		mapName = self.playerMaps[playerId]
+		if mobId not in self.maps[mapName].mobs:
+			return
+		dist = getDist(self.maps[mapName].mobs[mobId].mapRect, self.maps[mapName].players[playerId].mapRect)
+		if dist > 35.0:
+			return
+		self.maps[mapName].delMob(mobId)
+		self.SendMobLeaveMap(mapName, mobId)
 '''
 # get command line argument of server, port
 if len(sys.argv) != 2:
@@ -273,5 +296,5 @@ else:
 '''
 
 if __name__=="__main__":
-	s = GameServer(localaddr=("88.173.217.230", 18647))
+	s = GameServer(localaddr=("88.173.217.230", 18647), listeners=5000)
 	s.Launch()
