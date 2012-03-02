@@ -134,13 +134,11 @@ class GameServer(Server):
 		self.players = {} # playerId -> playerChannel
 		self.playerMaps = {} # playerId -> mapName
 		
-		self.db = dbHandler("db/essai.db")
+		self.db = dbHandler("save/essai.db")
 		
-		#self.map = MapBase("maps/001-1.tmx")
 		self.maps = {}
-		#self.map = GameMap(self, "maps/testmap.txt")
-		self.addMap("maps/testmap.txt")
-		self.addMap("maps/testmap2.txt")
+		self.addMap("data/start.txt")
+		self.addMap("data/second.txt")
 		
 		print 'Server launched'
 		
@@ -267,7 +265,7 @@ class GameServer(Server):
 		self.SendPlayerWarp(newMapName, playerName, x, y)
 		self.SendPlayerEnterMap(newMapName, playerName)
 		self.playerMaps[playerName] = newMapName
-		print("warped player %s from map %s to map %s : %s / %s" % (playerName, mapName, newMapName, x, y))
+		#print("warped player %s from map %s to map %s : %s / %s" % (playerName, mapName, newMapName, x, y))
 		
 	def addMob(self, mapName, mobId, x=60,y=60):
 		self.maps[mapName].addMob(mobId, x, y)

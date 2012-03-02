@@ -47,14 +47,13 @@ class Inventory:
 				self.addItem(item[0].strip(), item[1].strip())
 
 class MapObject:
-	_map = None
 	def __init__(self, id, _map = None):
 		self.id = id
 		self._map = _map
 		
-		# float pixel position on map
 		self.category = None
 		self.currentMapName = None
+		# float pixel position on map
 		self.x = 0.0
 		self.y = 0.0
 		self.mapRect = pygame.Rect(0,0,1,1)
@@ -361,6 +360,15 @@ class MapLayer(object):
 		data = data.replace(' ', '')
 		return data
 
+class MapWarp(pygame.Rect):
+	def __init__(self, name, x, y, w, h, targetMapName, destX, destY):
+		self.name = name
+		# x, y, w, h, destX, destY are in pixels
+		pygame.Rect.__init__(self, (x, y, w, h))
+		self.targetMap = targetMapName
+		self.destX = destX
+		self.destY = destY
+
 class GameMap:
 	def __init__(self, server, filename=None):
 		self._server = server
@@ -371,17 +379,22 @@ class GameMap:
 		self.layers = {} # name : MapLayer
 		self.name = None
 		
-		if self.filename:
-			self.load(self.filename)
-		
-			
 		self.mobs = {}
 		self.players = {}
-	
+		self.warps = []
+		
+		if self.filename:
+			self.load(self.filename)
+			
 	def addLayer(self, name):
 		self.layers[name] = MapLayer(name, self.w, self.h, self.tileWidth, self.tileHeight)
 		
-	
+	def addWarp(self, name, x, y, w, h, targetMapName, destX, destY):
+		# x, y, w, h, destX, destY are in tiles
+		warp = MapWarp(name, x*self.tileWidth, y*self.tileHeight, w*self.tileWidth, h*self.tileHeight, targetMapName, destX*self.tileWidth, destY*self.tileHeight)
+		
+		self.warps.append(warp)
+		
 	def getSaveData(self):
 		if not self.name:
 			if self.filename:
@@ -405,8 +418,47 @@ class GameMap:
 		f.close()
 		print "Map saved in %s" % (filename)
 		
+	def load(self, filename):
+		self.filename = filename
+		content = open(filename).read()
+		for line in content.split("\n"):
+			line = line.strip()
+			if len(line)<2:
+				continue
+			if line[0]== '#':
+				continue
+				
+			if ":" in line:
+				if len(line.split(":"))!=2: continue
+				key , value = line.split(":")
+				key = key.strip()
+				value = value.strip()
+				
+				if key == "name":
+					self.name = value
+					
+				if key == "file":
+					self.loadTileData(value)
+					
+				if key == "warp":
+					items = value.split(",")
+					if len(items)!=8:
+						continue
+					for i in range(8):
+						items[i] = items[i].strip()
+					warpName = items[0]
+					x = int(items[1])
+					y = int(items[2])
+					w = int(items[3])
+					h = int(items[4])
+					targetMap = items[5]
+					destX = int(items[6])
+					destY = int(items[7])
+					
+					self.addWarp(warpName, x, y, w, h, targetMap, destX, destY)
+					
 		
-	def load(self, filename):	
+	def loadTileData(self, filename):	
 		self.filename = filename
 		content = open(filename).read()
 		for line in content.split("\n"):
@@ -417,7 +469,8 @@ class GameMap:
 				if len(line.split("="))!=2: continue
 				key , value = line.split("=")
 				if key.strip() == "name":
-					self.name = value.strip()
+					#self.name = value.strip()
+					pass
 				elif key.strip() == "w":
 					self.w = int(value.strip())
 				elif key.strip() == "h":
@@ -562,5 +615,10 @@ class GameMap:
 	def update(self, dt):
 		for player in self.players.values():
 			player.update(dt)
+			for warp in self.warps:
+				if warp.colliderect(player.mapRect):
+					#print "Player %s entered in warp %s (leading to %s : %s/%s)" % (player.id, warp.name, warp.targetMap, warp.destX, warp.destY)
+					self._server.warpPlayer(player.id, warp.targetMap, warp.destX, warp.destY)
+					
 		for mob in self.mobs.values():
 			mob.update(dt)
