@@ -93,8 +93,15 @@ class ClientChannel(Channel):
 		
 		self._server.SendPlayerUpdateMove(mapName, id, x, y, dx, dy)
 		#self._server.SendToAll({"action": "player_update_move", "id": self.id, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
-		
-		self._server.maps[mapName].players[self.id].setPos(x, y)
+		playerMapRect = self._server.maps[mapName].players[self.id].mapRect
+		d= getDist(playerMapRect, pygame.Rect((x, y,0,0)))
+		if d>16.0:
+			print("Warning : %s says he's at %s pixels from where i know he should be. I'll warp that sucker!" % (self.id, d))
+			playerx = playerMapRect.x
+			playery = playerMapRect.y
+			self._server.warpPlayer(id, mapName, playerx,playery)
+		#else:
+		#	self._server.maps[mapName].players[self.id].setPos(x, y)
 		self._server.maps[mapName].players[self.id].setMovement(dx, dy)
 	
 	def Network_warp_request(self, data):
@@ -177,9 +184,10 @@ class GameServer(Server):
 			dt = t - self.prevTime
 			self.prevTime = t
 			
-			#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
-			for m in self.maps:
-				self.maps[m].update(dt)
+			if dt:
+				#print "Server Main Loop : t = %s, dt = %s" % (t, dt)
+				for m in self.maps:
+					self.maps[m].update(dt)
 			
 			self.Pump()
 			sleep(0.0001)
@@ -255,7 +263,7 @@ class GameServer(Server):
 		
 	
 	
-	def addPlayer(self, mapName, playerName, x=50.0, y=50.0):
+	def addPlayer(self, mapName, playerName, x, y):
 		self.playerMaps[playerName] = mapName
 		self.maps[mapName].addPlayer(playerName, x, y)
 		self.SendPlayerEnterMap(mapName, playerName)

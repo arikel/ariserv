@@ -61,7 +61,7 @@ class MapObject:
 		# movement
 		self.dx = 0.0
 		self.dy = 0.0
-		self.speed = 0.2
+		self.speed = 0.1
 		self.mobile = False
 		
 		self.currentAnim = "idle"
@@ -84,10 +84,16 @@ class MapObject:
 	def setMovement(self, x, y):
 		self.dx = x # -1, 0, 1
 		self.dy = y
-
+		#if self.category == "player":
+		#	print "%s : setting move %s / %s" % (self.id, self.dx, self.dy)
+		
 	def update(self, dt=0.0):
 		if not self.mobile:
 			return
+			
+		if self.dx == 0 and self.dy == 0:
+			return
+			
 		if self.nextMovePossible(dt):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
 			return
@@ -103,6 +109,8 @@ class MapObject:
 			self.setMovement(oldDx, 0)
 			if self.nextMovePossible(dt):
 				self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
+		
+		self.setMovement(oldDx, oldDy)
 		
 	def nextMovePossible(self, dt=0.0):
 		if not self._map:
@@ -622,6 +630,8 @@ class GameMap:
 			for warp in self.warps:
 				if warp.colliderect(player.mapRect):
 					#print "Player %s entered in warp %s (leading to %s : %s/%s)" % (player.id, warp.name, warp.targetMap, warp.destX, warp.destY)
+					#print "Player location was %s / %s (tile : %s/%s)" % (player.x, player.y, int(player.x/self.tileWidth), int(player.y/self.tileHeight))
+					
 					self._server.warpPlayer(player.id, warp.targetMap, warp.destX, warp.destY)
 					
 		for mob in self.mobs.values():
