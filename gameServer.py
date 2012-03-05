@@ -9,12 +9,13 @@ try:
 	psyco.full()
 except:
 	pass
-#import random
+
+#import pygame # pygame imported in gameEngine
 
 from PodSixNet.Server import Server
 from PodSixNet.Channel import Channel
 
-from functions import ustr, getDist
+#from functions import ustr
 
 from dbHandler import dbHandler
 from gameEngine import *
@@ -113,7 +114,7 @@ class ClientChannel(Channel):
 	
 	def Network_attack_mob(self, data):
 		target = data['target']
-		self._server.OnPlayerAttackMob(self.id, target)
+		self._server.onPlayerAttackMob(self.id, target)
 	
 	#-------------------------------------------------------------------
 	# chat
@@ -297,17 +298,25 @@ class GameServer(Server):
 		self.maps[mapName].addMob(mobId, x, y)
 		
 		
-	def OnPlayerAttackMob(self, playerId, mobId):
+	def onPlayerAttackMob(self, playerId, mobId):
 		if playerId not in self.playerMaps:
 			return
 		mapName = self.playerMaps[playerId]
 		if mobId not in self.maps[mapName].mobs:
 			return
 		dist = getDist(self.maps[mapName].mobs[mobId].mapRect, self.maps[mapName].players[playerId].mapRect)
-		if dist > 35.0:
+		if dist > 40.0:
+			return
+		dmg = random.randint(1,6)
+		self.SendMobTookDamage(mapName, mobId, dmg)
+		self.maps[mapName].mobs[mobId].takeDamage(dmg)
+		if self.maps[mapName].mobs[mobId].hp <= 0:
+			self.onMobDie(mapName, mobId)
+		
+	def onMobDie(self, mapName, mobId):
+		if mobId not in self.maps[mapName].mobs:
 			return
 		self.maps[mapName].delMob(mobId)
-		self.SendMobTookDamage(mapName, mobId, random.randint(1,6))
 		self.SendMobLeaveMap(mapName, mobId)
 		
 '''

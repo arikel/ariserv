@@ -1,8 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
-from tmxHandler import *
+
 import random
 import math
+import pygame
 
 def getDist(a, b):# a, b == Rect or derivative : Player, Mob...
 	return math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)
@@ -136,11 +137,11 @@ class Being(object):
 	def heal(self, n):
 		self.hp += n
 		# keep hp between 0 and hpMax
-		self.hp = min(max(self.hp, 0), self.maxHp)
+		self.hp = min(max(self.hp, 0), self.hpMax)
 		
 	def takeDamage(self, n):
 		self.hp -= n
-		self.hp = min(max(self.hp, 0), self.maxHp)
+		self.hp = min(max(self.hp, 0), self.hpMax)
 		
 	def getCarac(self, caracName):
 		if caracName in self.carac:
@@ -160,6 +161,8 @@ class Mob(Being, MapObject):
 		self.mobile = True
 		self.category = "mob"
 		self.mobId = mobId
+		self.hp = 10
+		self.hpMax = 10
 		self.setPos(x, y)
 		self.timer = 0
 		self.state = "idle"
@@ -182,15 +185,11 @@ class Mob(Being, MapObject):
 				self.dy = 0
 				self._map.sendMobUpdateMove(self.id)
 				return False
-			
 			self.dx = random.randint(1,3) -2
 			self.dy = random.randint(1,3) -2
 			self._map.sendMobUpdateMove(self.id)
 			#print "mob %s changing movement %s / %s" % (self.id, self.dx, self.dy)
 			return True
-		
-		
-		
 		return False
 		
 class Player(Being, MapObject):
@@ -200,97 +199,7 @@ class Player(Being, MapObject):
 		self.mobile = True
 		self.category = "player"
 		self.setPos(x, y)
-		
-'''	
-class MapBase:
-	def __init__(self, filename=None):
-		self.filename = filename
-		if self.filename:
-			self.load(self.filename)
-		
-		self.mobs = {}
-		self.players = {}
-		
-	def load(self, filename):	
-		self.mapData = TmxMapData()
-		self.mapData.load(self.filename)
-		
-		self.width = self.mapData.width
-		self.height = self.mapData.height
-		
-		self.tileWidth = self.mapData.tileWidth
-		self.tileHeight = self.mapData.tileHeight
-		
-		self.collisionLayer = TileLayer("collisionLayer",
-			self.width,
-			self.height,
-			decode(self.mapData.getLayerData("collision"))
-		)
-		
-		self.collisionGrid = TileLayer("collisionGrid",
-			self.width,
-			self.height,
-			decode(self.mapData.getLayerData("collision"))
-		)
-		
-	def tileCollide(self, x, y): # tile position collide test
-		if not (0<=x<len(self.collisionGrid.tiles)):
-			return True
-		if not (0<=y<len(self.collisionGrid.tiles[0])):
-			return True
-		if self.collisionGrid.tiles[x][y]>0:
-			#print "%s / %s collides" % (x,y)
-			return True
-		return False
-		
-	def posCollide(self, x, y): # pixel position collide test
-		return self.tileCollide(int(x)/self.tileWidth, int(y)/self.tileHeight)
-		
-	def blockTile(self, x, y):
-		self.collisionGrid.tiles[x][y] = 1
-		
-	def freeTile(self, x, y):
-		self.collisionGrid.tiles[x][y] = 0
-	
-	def revertTile(self, x, y):
-		self.collisionGrid.tiles[x][y] = self.collisionLayer.tiles[x][y]
-	
-		
-	def addPlayer(self, player, x=None, y=None):
-		if x == None:
-			x = player.x
-			y = player.y
-		if player.id not in self.players:
-			self.players[player.id]=player
-			player._map = self
-			self.players[player.id].setPos(x, y)
-			
-	def delPlayer(self, playerName):
-		del self.players[playerName]
-	
-	def addMob(self, mob, x=None, y=None):
-		if x == None:
-			x = mob.x
-			y = mob.y
-		if mob.id not in self.mobs:
-			print "Engine : adding mob : %s -> %s" % (mob.id, mob)
-			self.mobs[mob.id]=mob
-			mob._map = self
-			self.mobs[mob.id].setPos(x, y)
-	
-	def delMob(self, mobId):
-		del self.mobs[mobId]
-		
-	def update(self, dt):
-		for player in self.players.values():
-			player.update(dt)
-			#print "updated player %s : %s / %s" % (player.id, player.x, player.y)
-			
-		for mob in self.mobs.values():
-			mob.update(dt)
-			#print "updating mob %s : %s / %s, dt = %d" % (mob.id, mob.x, mob.y, dt)
-			#print "updated pos for player %s : %s / %s, direction : %s / %s" % (player.id, player.x, player.y, player.dx, player.dy)
-'''			
+
 
 class MapLayer(object):
 	def __init__(self, name, w, h, tileWidth=16, tileHeight=16):
