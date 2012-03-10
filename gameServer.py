@@ -97,7 +97,7 @@ class ClientChannel(Channel):
 		playerMapRect = self._server.maps[mapName].players[self.id].mapRect
 		d= getDist(playerMapRect, pygame.Rect((x, y,0,0)))
 		print "Network player update: x", x, 'y', y, 'd', d
-		if d>120.0:
+		if d>20.0:
 			print("Warning : %s says he's at %s pixels from where i know he should be. I'll warp that sucker!" % (self.id, d))
 			playerx = playerMapRect.x
 			playery = playerMapRect.y
