@@ -96,13 +96,13 @@ class ClientChannel(Channel):
 		#self._server.SendToAll({"action": "player_update_move", "id": self.id, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
 		playerMapRect = self._server.maps[mapName].players[self.id].mapRect
 		d= getDist(playerMapRect, pygame.Rect((x, y,0,0)))
-		if d>16.0:
+		if d>60.0:
 			print("Warning : %s says he's at %s pixels from where i know he should be. I'll warp that sucker!" % (self.id, d))
 			playerx = playerMapRect.x
 			playery = playerMapRect.y
 			self._server.warpPlayer(id, mapName, playerx,playery)
-		#else:
-		#	self._server.maps[mapName].players[self.id].setPos(x, y)
+		else:
+			self._server.maps[mapName].players[self.id].setPos(x, y)
 		self._server.maps[mapName].players[self.id].setMovement(dx, dy)
 	
 	def Network_warp_request(self, data):
@@ -304,13 +304,16 @@ class GameServer(Server):
 		mapName = self.playerMaps[playerId]
 		if mobId not in self.maps[mapName].mobs:
 			return
-		dist = getDist(self.maps[mapName].mobs[mobId].mapRect, self.maps[mapName].players[playerId].mapRect)
+		mob = self.maps[mapName].mobs[mobId]
+		dist = getDist(mob.mapRect, self.maps[mapName].players[playerId].mapRect)
 		if dist > 40.0:
 			return
 		dmg = random.randint(1,6)
 		self.SendMobTookDamage(mapName, mobId, dmg)
-		self.maps[mapName].mobs[mobId].takeDamage(dmg)
-		if self.maps[mapName].mobs[mobId].hp <= 0:
+		mob.takeDamage(dmg)
+		mob.setMovement(0,0)
+		self.SendMobUpdateMove(mapName, mobId, mob.x, mob.y, 0,0)
+		if mob.hp <= 0:
 			self.onMobDie(mapName, mobId)
 		
 	def onMobDie(self, mapName, mobId):
