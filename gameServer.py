@@ -129,7 +129,7 @@ class GameServer(Server):
 		self.SendToMap(mapName, {"action": "player_leave_map", "id": playerName})
 	
 	def SendPlayerWarp(self, mapName, playerName, x, y):
-		mapFileName = self.maps[mapName].filename
+		mapFileName = self.maps[mapName].mapFilename
 		self.SendTo(playerName, {"action": "warp", "mapFileName" : mapFileName, "x":x, "y":y})	
 		
 	def SendMobLeaveMap(self, mapName, mobId):

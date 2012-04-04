@@ -12,16 +12,15 @@ class ClientChannel(Channel):
 	"""
 	def __init__(self, *args, **kwargs):
 		#print "Init client channel : %s // %s" % (args, kwargs)
-		#self.nickname = "anonymous"
-		self.id = "none"
+		self.name = "none"
 		Channel.__init__(self, *args, **kwargs)
 	
 	def Close(self):
 		self._server.DelPlayerChannel(self)
-		self._server.delPlayer(self.id)
+		self._server.delPlayer(self.name)
 	
 	#-------------------------------------------------------------------
-	# on server receive from client self.id :
+	# on server receive from client self.name :
 	#-------------------------------------------------------------------
 	
 	#-------------------------------------------------------------------
@@ -77,7 +76,7 @@ class ClientChannel(Channel):
 		#self._server.SendToAll({"action": "player_update_move", "id": self.id, "x":data['x'], "y":data['y'], "dx":data['dx'], "dy":data['dy']})
 		playerMapRect = self._server.maps[mapName].players[self.name].mapRect
 		d= getDist(playerMapRect, pygame.Rect((x, y,0,0)))
-		print "Network player update: x", x, 'y', y, 'd', d
+		#print "Network player update: x", x, 'y', y, 'd', d
 		if d>20.0:
 			print("Warning : %s says he's at %s pixels from where i know he should be. I'll warp that sucker!" % (self.name, d))
 			playerx = playerMapRect.x
@@ -85,6 +84,7 @@ class ClientChannel(Channel):
 			self._server.warpPlayer(name, mapName, playerx,playery)
 		else:
 			self._server.maps[mapName].players[self.name].setPos(x, y)
+		
 		self._server.maps[mapName].players[self.name].setMovement(dx, dy)
 	
 	def Network_warp_request(self, data):

@@ -49,6 +49,9 @@ class Inventory:
 
 class MapObject:
 	def __init__(self, name, _map = None):
+		if not _map:
+			return False
+		
 		self.name = name
 		self._map = _map
 		
@@ -78,6 +81,14 @@ class MapObject:
 	
 	def getPos(self):
 		return (self.x, self.y)
+	
+	def getTilePos(self):
+		X, Y = self.x/self._map.tileWidth, self.y / self._map.tileHeight
+		return (X, Y)
+	
+	def setTilePos(self, X, Y):
+		x = X * self._map.tileWidth
+		y = Y * self._map.tileHeight
 	
 	def move(self, x, y):
 		self.setPos(self.x + x, self.y + y)
@@ -378,8 +389,8 @@ class GameMap:
 					self.addWarp(warpName, x, y, w, h, targetMap, destX, destY)
 					
 		
-	def loadTileData(self, filename):	
-		self.filename = filename
+	def loadTileData(self, filename):
+		self.mapFilename = filename
 		content = open(filename).read()
 		for line in content.split("\n"):
 			line = line.strip()
