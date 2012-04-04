@@ -101,15 +101,15 @@ class GameServer(Server):
 			player = self.maps[mapName].players[playerName]
 			self.SendPlayerUpdateMove(mapName, playerName, player.x, player.y, player.dx, player.dy)
 	
-	def SendWarpInfo(self, playerId):
-		mapName = self.playerMaps[playerId]
+	def SendWarpInfo(self, playerName):
+		mapName = self.playerMaps[playerName]
 		for warp in self.maps[mapName].warps:
 			name = warp.name
 			x = warp.x
 			y = warp.y
 			w = warp.w
 			h = warp.h
-			self.SendTo(playerId, {'action':'warp_info', 'name':name, 'x':x, 'y':y, 'w':w, 'h':h})
+			self.SendTo(playerName, {'action':'warp_info', 'name':name, 'x':x, 'y':y, 'w':w, 'h':h})
 	
 	def SendPlayerUpdateMove(self, mapName, playerName, x, y, dx, dy):
 		self.SendToMap(mapName, {"action": "player_update_move", "id": playerName, "x" : x, "y" : y, "dx" : dx, "dy" : dy})
@@ -202,7 +202,7 @@ class GameServer(Server):
 			return
 		self.maps[mapName].delMob(mobId)
 		self.SendMobLeaveMap(mapName, mobId)
-		
+		self.maps[mapName].addMob(1, 80,80)
 '''
 # get command line argument of server, port
 if len(sys.argv) != 2:

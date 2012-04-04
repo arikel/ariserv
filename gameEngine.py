@@ -48,8 +48,8 @@ class Inventory:
 				self.addItem(item[0].strip(), item[1].strip())
 
 class MapObject:
-	def __init__(self, id, _map = None):
-		self.id = id
+	def __init__(self, name, _map = None):
+		self.name = name
 		self._map = _map
 		
 		self.category = None
@@ -85,8 +85,7 @@ class MapObject:
 	def setMovement(self, x, y):
 		self.dx = x # -1, 0, 1
 		self.dy = y
-		#if self.category == "player":
-		#	print "%s : setting move %s / %s" % (self.id, self.dx, self.dy)
+		
 		
 	def update(self, dt=0.0):
 		if not self.mobile:
@@ -122,8 +121,8 @@ class MapObject:
 		return True
 
 class Being(object):
-	def __init__(self, id):
-		self.id = id
+	def __init__(self, name):
+		self.name = name
 		
 		self.hp = 1
 		self.hpMax = 1
@@ -155,9 +154,9 @@ class Being(object):
 		
 	
 class Mob(Being, MapObject):
-	def __init__(self, id, mobId, _map, x, y):
-		Being.__init__(self, id)
-		MapObject.__init__(self, id, _map)
+	def __init__(self, name, mobId, _map, x, y):
+		Being.__init__(self, name)
+		MapObject.__init__(self, name, _map)
 		self.mobile = True
 		self.category = "mob"
 		self.mobId = mobId
@@ -176,26 +175,26 @@ class Mob(Being, MapObject):
 			self.move(self.speed*self.dx*dt, self.speed*self.dy*dt)
 		else:
 			self.setMovement(0,0)
-			self._map.sendMobUpdateMove(self.id)
+			self._map.sendMobUpdateMove(self.name)
 		#print "--- mob %s updating movement :"
 		if self.timer > 5000:
 			self.timer = 0
 			if random.randint(1,2)>1:
 				self.dx = 0
 				self.dy = 0
-				self._map.sendMobUpdateMove(self.id)
+				self._map.sendMobUpdateMove(self.name)
 				return False
 			self.dx = random.randint(1,3) -2
 			self.dy = random.randint(1,3) -2
-			self._map.sendMobUpdateMove(self.id)
-			#print "mob %s changing movement %s / %s" % (self.id, self.dx, self.dy)
+			self._map.sendMobUpdateMove(self.name)
+			
 			return True
 		return False
 		
 class Player(Being, MapObject):
-	def __init__(self, id, _map, x, y):
-		Being.__init__(self, id)
-		MapObject.__init__(self, id, _map)
+	def __init__(self, name, _map, x, y):
+		Being.__init__(self, name)
+		MapObject.__init__(self, name, _map)
 		self.mobile = True
 		self.category = "player"
 		self.setPos(x, y)
@@ -503,9 +502,9 @@ class GameMap:
 		return self.tileCollide(int(x)/self.tileWidth, int(y)/self.tileHeight)
 		
 	
-	def addPlayer(self, playerId, x, y):
-		if playerId not in self.players:
-			self.players[playerId]=Player(playerId, self, x, y)
+	def addPlayer(self, playerName, x, y):
+		if playerName not in self.players:
+			self.players[playerName]=Player(playerName, self, x, y)
 			
 	def delPlayer(self, playerName):
 		del self.players[playerName]
@@ -514,34 +513,31 @@ class GameMap:
 		player = self.players[playerName]
 		self._server.SendPlayerUpdateMove(self.name, playerName, player.x, player.y, player.dx, player.dy)
 	
-	def getNewMobId(self):
-		id = "mob_"
+	def getNewMobName(self):
+		name = "mob_"
 		n = 1
-		while id + str(n) in self.mobs:
+		while name + str(n) in self.mobs:
 			n +=1
-		return id + str(n)
+		return name + str(n)
 	
 	def addMob(self, mobId, x, y):
-		newId = self.getNewMobId()
-		self.mobs[newId]=Mob(newId, mobId, self, x, y)
-		#self.mobs[mob.id].setPos(x, y)
+		newName = self.getNewMobName()
+		self.mobs[newName]=Mob(newName, mobId, self, x, y)
+		
 	
-	def delMob(self, mobId):
-		del self.mobs[mobId]
+	def delMob(self, mobName):
+		del self.mobs[mobName]
 	
-	def sendMobUpdateMove(self, mobId):
-		mob = self.mobs[mobId]
-		self._server.SendMobUpdateMove(self.name, mobId, mob.x, mob.y, mob.dx, mob.dy)
+	def sendMobUpdateMove(self, mobName):
+		mob = self.mobs[mobName]
+		self._server.SendMobUpdateMove(self.name, mobName, mob.x, mob.y, mob.dx, mob.dy)
 		
 	def update(self, dt):
 		for player in self.players.values():
 			player.update(dt)
 			for warp in self.warps:
 				if warp.colliderect(player.mapRect):
-					#print "Player %s entered in warp %s (leading to %s : %s/%s)" % (player.id, warp.name, warp.targetMap, warp.destX, warp.destY)
-					#print "Player location was %s / %s (tile : %s/%s)" % (player.x, player.y, int(player.x/self.tileWidth), int(player.y/self.tileHeight))
-					
-					self._server.warpPlayer(player.id, warp.targetMap, warp.destX, warp.destY)
+					self._server.warpPlayer(player.name, warp.targetMap, warp.destX, warp.destY)
 					
 		for mob in self.mobs.values():
 			mob.update(dt)
