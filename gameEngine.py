@@ -54,6 +54,7 @@ class MapObject:
 		
 		self.name = name
 		self._map = _map
+		self.mapName = self._map.name
 		
 		self.category = None
 		self.currentMapName = None
@@ -534,7 +535,7 @@ class GameMap:
 	def addMob(self, mobId, x, y):
 		newName = self.getNewMobName()
 		self.mobs[newName]=Mob(newName, mobId, self, x, y)
-		
+		self.sendMobUpdateMove(newName)
 	
 	def delMob(self, mobName):
 		del self.mobs[mobName]
