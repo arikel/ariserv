@@ -4,6 +4,7 @@
 import random
 import math
 import pygame
+from pathFind import astar
 
 def getDist(a, b):# a, b == Rect or derivative : Player, Mob...
 	return math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)
@@ -190,7 +191,7 @@ class Mob(Being, MapCreature):
 		#print "--- mob %s updating movement :"
 		if self.timer > 5000:
 			self.timer = 0
-			if random.randint(1,2)>1:
+			if random.randint(1,4)>3:
 				self.dx = 0
 				self.dy = 0
 				self._map.sendMobUpdateMove(self.name)
