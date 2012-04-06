@@ -47,21 +47,20 @@ class Inventory:
 			if len(item)==2:
 				self.addItem(item[0].strip(), item[1].strip())
 
-class MapObject:
+class MapCreature:
 	def __init__(self, name, _map = None):
 		if not _map:
 			return False
-		
 		self.name = name
 		self._map = _map
 		self.mapName = self._map.name
 		
 		self.category = None
-		self.currentMapName = None
+		
 		# float pixel position on map
 		self.x = 0.0
 		self.y = 0.0
-		self.mapRect = pygame.Rect(0,0,1,1)
+		self.mapRect = pygame.Rect(0,0,10,4)
 		
 		# movement
 		self.dx = 0.0
@@ -165,10 +164,10 @@ class Being(object):
 		return 0
 		
 	
-class Mob(Being, MapObject):
+class Mob(Being, MapCreature):
 	def __init__(self, name, mobId, _map, x, y):
 		Being.__init__(self, name)
-		MapObject.__init__(self, name, _map)
+		MapCreature.__init__(self, name, _map)
 		self.mobile = True
 		self.category = "mob"
 		self.mobId = mobId
@@ -203,10 +202,10 @@ class Mob(Being, MapObject):
 			return True
 		return False
 		
-class Player(Being, MapObject):
+class Player(Being, MapCreature):
 	def __init__(self, name, _map, x, y):
 		Being.__init__(self, name)
-		MapObject.__init__(self, name, _map)
+		MapCreature.__init__(self, name, _map)
 		self.mobile = True
 		self.category = "player"
 		self.setPos(x, y)

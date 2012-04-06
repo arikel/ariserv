@@ -1,7 +1,7 @@
 import pygame
-from gameEngine import getDist
 from PodSixNet.Channel import Channel
-
+from gameEngine import getDist
+from dbHandler import isValidName, isValidPassword
 #-----------------------------------------------------------------------
 # ClientChannel : connection to the client
 #-----------------------------------------------------------------------
@@ -43,18 +43,56 @@ class ClientChannel(Channel):
 	def Network_login(self, data):
 		self.name = data['id']
 		self.password = data['password']
+		print "received login for %s, pass = %s" % (data["id"], data["password"])
+		
+		# check login / password
 		if self._server.db.checkLogin(self.name, self.password):
 			if self.name in self._server.players:
 				print "Error, %s is already connected"
 				return False
-				
+			
+			# LOGIN accepted
+			self._server.SendLoginAccepted(self)
 			self._server.players[self.name] = self
 			self._server.addPlayer("start", self.name, 50, 70)
 			print "player %s logged in." % (self.name)
-			self._server.SendPlayers()
+			
+			#self._server.SendPlayers()
 			if "none" in self._server.players:
 				del self._server.players["none"]
-	
+		# LOGIN error
+		else:
+			if self._server.db.getPlayer(self.name):
+				print "I know player %s, pass doesn't match" % (self.name)
+				self._server.SendLoginError(self, "wrong password")
+				
+			else:
+				print "Player %s unknown" % (self.name)
+				self._server.SendLoginError(self, "player unknown")
+		
+	def Network_register(self, data):
+		self.name = data['id']
+		self.password = data['password']
+		print "received register for %s, pass = %s" % (data["id"], data["password"])
+		
+		if self._server.db.hasPlayer(self.name):
+			msg = "Player %s already exists" % (self.name)
+			self._server.SendRegisterError(self, msg)
+			return
+		if not isValidName(self.name):
+			msg = "%s is not a valid name, keep it simple." % (self.name)
+			self._server.SendRegisterError(self, msg)
+			return
+			
+		if not isValidPassword(self.password):
+			msg = "%s is not a valid password, more than 4 characters please." % (self.password)
+			self._server.SendRegisterError(self, msg)
+			return
+			
+		self._server.db.addPlayer(self.name, self.password)
+		print "Registered player %s" % (self.name)
+		msg = "The player %s has been registered, you may now login." % (self.name)
+		self._server.SendRegisterAccepted(self, msg)
 	#-------------------------------------------------------------------
 	# info request
 	def Network_warp_info_request(self, data={}):

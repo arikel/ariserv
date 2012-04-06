@@ -10,10 +10,14 @@ try:
 except:
 	pass
 
+import pygame
+import random
+
 from PodSixNet.Server import Server
 
-from dbHandler import dbHandler
-from gameEngine import *
+from dbHandler import DbHandler, isValidName, isValidPassword
+#from gameEngine import *
+from gameEngine import Player, Mob, GameMap, getDist
 
 from clientChannel import ClientChannel
 
@@ -26,10 +30,10 @@ class GameServer(Server):
 	def __init__(self, *args, **kwargs):
 		Server.__init__(self, *args, **kwargs)
 		self.playerChannels = {}#WeakKeyDictionary() # playerChannel -> True
-		self.players = {} # playerId -> playerChannel
-		self.playerMaps = {} # playerId -> mapName
+		self.players = {} # playerName -> playerChannel
+		self.playerMaps = {} # playerName -> mapName
 		
-		self.db = dbHandler("save/essai.db")
+		self.db = DbHandler("save/essai.db")
 		
 		self.maps = {}
 		self.addMap("data/start.txt")
@@ -91,6 +95,36 @@ class GameServer(Server):
 	#-------------------------------------------------------------------
 	# server messages to client
 	#-------------------------------------------------------------------
+	def SendLoginError(self, playerChannel, msg):
+		if playerChannel not in self.playerChannels:
+			print "Error : player channel unknown"
+			return
+		data = {"action":"login_error", "msg" : msg}
+		playerChannel.Send(data)
+		
+	def SendLoginAccepted(self, playerChannel):
+		if playerChannel not in self.playerChannels:
+			print "Error : player channel unknown"
+			return
+		print "Sending login accepted"
+		data = {"action":"login_accepted", "mapFileName" : "maps/testmap.txt", "x": 50, "y":50}
+		playerChannel.Send(data)
+		
+	def SendRegisterError(self, playerChannel, msg):
+		if playerChannel not in self.playerChannels:
+			print "Error : player channel unknown"
+			return
+		data = {"action":"register_error", "msg" : msg}
+		playerChannel.Send(data)
+		
+	def SendRegisterAccepted(self, playerChannel, msg):
+		if playerChannel not in self.playerChannels:
+			print "Error : player channel unknown"
+			return
+		data = {"action":"register_accepted", "msg" : msg}
+		playerChannel.Send(data)
+		
+		
 	def SendPlayers(self):
 		for mapName in self.maps:
 			self.SendMapPlayers(mapName)

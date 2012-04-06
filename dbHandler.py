@@ -5,11 +5,26 @@ import sys
 import sqlite3
 import time
 import hashlib
+import re
 
 def encodePassword(password):
 	return hashlib.md5(password).hexdigest()
 
-class dbHandler(object):
+def isValidName(name):
+	if len(name)==0:
+		return False
+	if len(name)>20:
+		return False
+	if re.match("^[A-Za-z0-9_-]*$", name):
+		return True
+	return False
+
+def isValidPassword(password):
+	if len(password)<4:
+		return False
+	return True
+
+class DbHandler(object):
 	def __init__(self, dbfile):
 		self.dbfile = dbfile
 		self.connection = sqlite3.connect(self.dbfile)
@@ -69,7 +84,7 @@ class dbHandler(object):
 		
 		
 	def delPlayer(self, name):
-		msg = """remove from players where name='%s'""" % (name)
+		msg = """delete from players where name='%s'""" % (name)
 		self.execute(msg)
 		
 	def getPlayer(self, name):
@@ -87,7 +102,7 @@ class dbHandler(object):
 	def checkLogin(self, name, password):
 		res = self.execute("""select * from players where name = '%s'""" % (name))
 		if len(res)>0:
-			if res[2]==encodePassword(password):
+			if res[0][2]==encodePassword(password):
 				return True
 		return False
 	
@@ -97,8 +112,8 @@ class dbHandler(object):
 	
 	def createCharTable(self):
 		self.execute("""create table characters(
-			playerId integer,
-			id text,
+			playerName integer,
+			name text,
 			sex text,
 			gmLevel integer,
 			map text,
@@ -133,4 +148,4 @@ class dbHandler(object):
 			quantity integer
 			)""")
 			
-#dbhandler = dbHandler("db/essai.db")
+#dbhandler = DbHandler("db/essai.db")
