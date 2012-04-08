@@ -29,13 +29,16 @@ class ClientChannel(Channel):
 	def Network_nickname(self, data):
 		self.name = data["id"]
 		if self.name in self._server.players:
-			print "Player %s already connected" % (self.name)
+			msg = "Player %s already connected" % (self.name)
+			self._server.log(msg)
 			self.Close()
 			return
 		
 		self._server.players[self.name] = self
 		self._server.addPlayer("start", self.name, 50, 70)
-		print "player %s logged in." % (self.name)
+		msg = "player %s logged in." % (self.name)
+		self._server.log(msg)
+		
 		self._server.SendMapPlayers("start")
 		#if "none" in self._server.players:
 		#	del self._server.players["none"]
@@ -43,19 +46,22 @@ class ClientChannel(Channel):
 	def Network_login(self, data):
 		self.name = data['id']
 		self.password = data['password']
-		print "received login for %s, pass = %s" % (data["id"], data["password"])
+		msg = "received login for %s, pass = %s" % (data["id"], data["password"])
+		self._server.log(msg)
 		
 		# check login / password
 		if self._server.db.checkLogin(self.name, self.password):
 			if self.name in self._server.players:
-				print "Error, %s is already connected"
+				msg = "Error, %s is already connected"
+				self._server.log(msg)
 				return False
 			
 			# LOGIN accepted
 			self._server.SendLoginAccepted(self)
 			self._server.players[self.name] = self
 			self._server.addPlayer("start", self.name, 50, 70)
-			print "player %s logged in." % (self.name)
+			msg = "player %s logged in." % (self.name)
+			self._server.log(msg)
 			
 			#self._server.SendPlayers()
 			if "none" in self._server.players:
@@ -63,34 +69,41 @@ class ClientChannel(Channel):
 		# LOGIN error
 		else:
 			if self._server.db.getPlayer(self.name):
-				print "I know player %s, pass doesn't match" % (self.name)
+				msg = "I know player %s, but password %s doesn't match" % (self.name, self.password)
+				self._server.log(msg)
 				self._server.SendLoginError(self, "wrong password")
 				
 			else:
-				print "Player %s unknown" % (self.name)
+				msg = "Player %s unknown" % (self.name)
+				self._server.log(msg)
 				self._server.SendLoginError(self, "player unknown")
 		
 	def Network_register(self, data):
 		self.name = data['id']
 		self.password = data['password']
-		print "received register for %s, pass = %s" % (data["id"], data["password"])
+		msg = "received register for %s, pass = %s" % (data["id"], data["password"])
+		self._server.log(msg)
 		
 		if self._server.db.hasPlayer(self.name):
 			msg = "Player %s already exists" % (self.name)
+			self._server.log(msg)
 			self._server.SendRegisterError(self, msg)
 			return
 		if not isValidName(self.name):
 			msg = "%s is not a valid name, keep it simple." % (self.name)
+			self._server.log(msg)
 			self._server.SendRegisterError(self, msg)
 			return
 			
 		if not isValidPassword(self.password):
 			msg = "%s is not a valid password, more than 4 characters please." % (self.password)
+			self._server.log(msg)
 			self._server.SendRegisterError(self, msg)
 			return
 			
 		self._server.db.addPlayer(self.name, self.password)
-		print "Registered player %s" % (self.name)
+		msg = "Registered player %s" % (self.name)
+		self._server.log(msg)
 		msg = "The player %s has been registered, you may now login." % (self.name)
 		self._server.SendRegisterAccepted(self, msg)
 	#-------------------------------------------------------------------
@@ -116,7 +129,8 @@ class ClientChannel(Channel):
 		d= getDist(playerMapRect, pygame.Rect((x, y,0,0)))
 		#print "Network player update: x", x, 'y', y, 'd', d
 		if d>20.0:
-			print("Warning : %s says he's at %s pixels from where i know he should be. I'll warp that sucker!" % (self.name, d))
+			msg = "Warning : %s says he's at %s pixels from where i know he should be. I'll warp that sucker!" % (self.name, d)
+			self._server.log(msg)
 			playerx = playerMapRect.x
 			playery = playerMapRect.y
 			self._server.warpPlayer(name, mapName, playerx,playery)

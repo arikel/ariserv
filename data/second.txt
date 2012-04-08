@@ -1,4 +1,4 @@
 name : second
 file : maps/testmap2.txt
 warp : to Start,0,0,10,1,start,5,5
-warp : to Start 2,20,20,5,5,start,5,5
+warp : to Start 2,0,0,15,1,start,5,5

@@ -2,7 +2,8 @@
 # -*- coding: utf8 -*-
 
 import sys
-from time import sleep
+import time
+#from time import sleep
 #from weakref import WeakKeyDictionary
 try:
 	import psyco
@@ -22,6 +23,26 @@ from gameEngine import Player, Mob, GameMap, getDist
 from clientChannel import ClientChannel
 
 #-----------------------------------------------------------------------
+# Logger
+#-----------------------------------------------------------------------
+class Logger(object):
+	def __init__(self, filename = "log.txt"):
+		self.filename = filename
+		
+	def write(self, msg):
+		self.logfile = open(self.filename, 'a')
+		today = time.strftime("%Y%m%d%H%M")
+		print "(log) %s %s" % (today, msg)
+		
+		msg = today + " : " + msg + "\n"
+		
+		self.logfile.write(msg)
+		self.logfile.close()
+		
+	def quit(self):
+		self.logfile.close()
+
+#-----------------------------------------------------------------------
 # GameServer
 #-----------------------------------------------------------------------
 class GameServer(Server):
@@ -34,21 +55,23 @@ class GameServer(Server):
 		self.playerMaps = {} # playerName -> mapName
 		
 		self.db = DbHandler("save/essai.db")
+		self.logger = Logger()
 		
 		self.maps = {}
 		self.addMap("data/start.txt")
 		self.addMap("data/second.txt")
 		
-		print 'Server launched'
+		self.log('Server launched')
 		
 		for m in self.maps:
 			for i in range(15):
 				self.maps[m].addMob(1,50.0,50.0)
 		
-		
 		self.prevTime = 0.0
-		
 		pygame.init()
+		
+	def log(self, msg):
+		self.logger.write(msg)
 		
 	#-------------------------------------------------------------------
 	# generic purpose server to client
@@ -76,7 +99,7 @@ class GameServer(Server):
 					self.maps[m].update(dt)
 			
 			self.Pump()
-			sleep(0.0001)
+			time.sleep(0.0001)
 	
 	
 	
@@ -84,11 +107,13 @@ class GameServer(Server):
 		self.AddPlayerChannel(channel)
 	
 	def AddPlayerChannel(self, playerChannel):
-		print "New player connected from " + str(playerChannel.addr) + ", waiting to log in..."
+		msg = "New player connected from " + str(playerChannel.addr) + ", waiting to log in..."
+		self.log(msg)
 		self.playerChannels[playerChannel] = True
 		
 	def DelPlayerChannel(self, playerChannel):
-		print "Deleting Player connection for " + str(playerChannel.addr)
+		msg = "Deleting Player connection for " + str(playerChannel.addr)
+		self.log(msg)
 		del self.playerChannels[playerChannel]
 		#self.SendPlayers()
 		
@@ -97,29 +122,31 @@ class GameServer(Server):
 	#-------------------------------------------------------------------
 	def SendLoginError(self, playerChannel, msg):
 		if playerChannel not in self.playerChannels:
-			print "Error : player channel unknown"
+			self.log("Login Error : player channel unknown")
 			return
 		data = {"action":"login_error", "msg" : msg}
 		playerChannel.Send(data)
 		
 	def SendLoginAccepted(self, playerChannel):
 		if playerChannel not in self.playerChannels:
-			print "Error : player channel unknown"
+			self.log("Login Error : player channel unknown")
 			return
-		print "Sending login accepted"
+		msg = "Sending login accepted"
+		self.log(msg)
+		
 		data = {"action":"login_accepted", "mapFileName" : "maps/testmap.txt", "x": 50, "y":50}
 		playerChannel.Send(data)
 		
 	def SendRegisterError(self, playerChannel, msg):
 		if playerChannel not in self.playerChannels:
-			print "Error : player channel unknown"
+			self.log("Register Error : player channel unknown")
 			return
 		data = {"action":"register_error", "msg" : msg}
 		playerChannel.Send(data)
 		
 	def SendRegisterAccepted(self, playerChannel, msg):
 		if playerChannel not in self.playerChannels:
-			print "Error : player channel unknown"
+			self.log("Register Error : player channel unknown")
 			return
 		data = {"action":"register_accepted", "msg" : msg}
 		playerChannel.Send(data)
@@ -128,7 +155,7 @@ class GameServer(Server):
 	def SendPlayers(self):
 		for mapName in self.maps:
 			self.SendMapPlayers(mapName)
-			
+		
 	def SendMapPlayers(self, mapName):
 		mapPlayers = self.maps[mapName].players.keys()
 		for playerName in mapPlayers:
@@ -175,10 +202,8 @@ class GameServer(Server):
 	def addMap(self, filePath):
 		m = GameMap(self, filePath)
 		self.maps[m.name] = m
-		print "Map '%s' added to server" % (m.name)
+		#print "Map '%s' added to server" % (m.name)
 		
-	
-	
 	def addPlayer(self, mapName, playerName, x, y):
 		self.playerMaps[playerName] = mapName
 		self.maps[mapName].addPlayer(playerName, x, y)
