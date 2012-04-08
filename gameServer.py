@@ -197,7 +197,8 @@ class GameServer(Server):
 		if mapName == newMapName:
 			player = self.maps[mapName].players[playerName]
 			player.setPos(x, y)
-			self.SendPlayerUpdateMove(mapName, playerName, x, y, 0, 0)
+			#self.SendPlayerUpdateMove(mapName, playerName, x, y, 0, 0)
+			self.SendPlayerWarp(newMapName, playerName, x, y)
 			return
 		
 		self.maps[mapName].delPlayer(playerName)
