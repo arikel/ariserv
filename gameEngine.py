@@ -126,7 +126,6 @@ class MapCreature:
 		
 	def nextMovePossible(self, dt=0.0):
 		if not self._map:
-			print "player has no map"
 			return False
 		if self._map.posCollide(self.x + self.dx*self.speed*dt, self.y + self.dy*self.speed*dt):
 			return False
@@ -236,6 +235,8 @@ class MapLayer(object):
 		return self.tiles[x][y]
 		
 	def setTile(self, x, y, code):
+		if self.name == "collision":
+			code = int(code)
 		self.tiles[x][y] = code
 		
 	def clearTile(self, x, y):
@@ -338,6 +339,8 @@ class GameMap:
 		data = data + "name = " + str(self.name) + "\n"
 		data = data + "w = " + str(self.w) + "\n"
 		data = data + "h = " + str(self.h) + "\n"
+		data = data + "tw = " + str(self.tileWidth) + "\n"
+		data = data + "th = " + str(self.tileHeight) + "\n"
 		
 		for layerName in self.layers:
 			data = data + layerName + " = " + str(self.layers[layerName].getSaveData()) + "\n\n"
@@ -407,6 +410,11 @@ class GameMap:
 					self.w = int(value.strip())
 				elif key.strip() == "h":
 					self.h = int(value.strip())
+				elif key.strip() == "tw":
+					self.tileWidth = int(value.strip())
+				elif key.strip() == "th":
+					self.tileHeight = int(value.strip())
+				
 				else:
 					codes = value.split(',')
 					if len(codes) == self.w * self.h:
@@ -415,7 +423,8 @@ class GameMap:
 						#print "Loading layer %s" % (layerName)
 						self.addLayer(layerName)
 						self.layers[layerName].setData(value)
-		self.makeCollisionGrid()
+		if "collision" not in self.layers:
+			self.makeCollisionGrid()
 		#print "Loaded map : %s" % (self.name)
 		
 	def makeCollisionGrid(self):
